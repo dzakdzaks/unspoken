@@ -52,7 +52,7 @@ export default function TranslatorInput({ onSubmit, isLoading, initialValue = ""
   return (
     <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
       <div>
-        <label className="mb-2 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+        <label className="mb-2 block text-xs font-semibold uppercase tracking-widest text-muted">
           {t.input.label}
         </label>
         <div className="relative">
@@ -65,14 +65,14 @@ export default function TranslatorInput({ onSubmit, isLoading, initialValue = ""
             placeholder={t.input.placeholder}
             rows={5}
             className={`
-              w-full resize-none rounded-xl border bg-slate-900/80 px-4 py-3
-              text-base leading-relaxed text-slate-100 placeholder-slate-600
+              w-full resize-none rounded-lg border bg-surface-card px-4 py-3
+              text-base leading-relaxed text-body-strong placeholder-muted-soft
               outline-none transition-all duration-200
-              focus:ring-2 focus:border-amber-500/60 focus:ring-amber-500/20
+              focus:ring-2 focus:border-primary/60 focus:ring-primary/20
               disabled:opacity-50 disabled:cursor-not-allowed
               ${isOverLimit
-                ? "border-red-500/60 focus:border-red-500/60 focus:ring-red-500/20"
-                : "border-slate-700 hover:border-slate-600"
+                ? "border-accent-rose/60 focus:border-accent-rose/60 focus:ring-accent-rose/20"
+                : "border-hairline-strong hover:border-muted-soft"
               }
             `}
             aria-label={t.input.ariaLabel}
@@ -80,7 +80,7 @@ export default function TranslatorInput({ onSubmit, isLoading, initialValue = ""
           <span
             className={`
               absolute bottom-3 right-3 text-xs font-medium tabular-nums
-              ${isOverLimit ? "text-red-400" : remaining <= 50 ? "text-amber-400" : "text-slate-600"}
+              ${isOverLimit ? "text-accent-rose" : remaining <= 50 ? "text-primary" : "text-muted-soft"}
             `}
           >
             {remaining}
@@ -95,7 +95,7 @@ export default function TranslatorInput({ onSubmit, isLoading, initialValue = ""
               type="button"
               onClick={() => fillExample(ex)}
               disabled={isLoading}
-              className="rounded-full border border-slate-700 bg-slate-800/60 px-3 py-1 text-xs text-slate-400 transition-colors hover:border-slate-500 hover:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="rounded-full border border-hairline-strong bg-surface-elevated/60 px-3 py-1 text-xs text-muted transition-colors hover:border-muted-soft hover:text-body disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {ex}
             </button>
@@ -107,23 +107,23 @@ export default function TranslatorInput({ onSubmit, isLoading, initialValue = ""
         type="submit"
         disabled={isEmpty || isOverLimit || isLoading}
         className={`
-          w-full rounded-xl py-4 text-base font-bold tracking-wide transition-all duration-200
+          w-full rounded-md py-4 text-base font-bold tracking-wide transition-all duration-200
           active:scale-95 disabled:cursor-not-allowed disabled:opacity-40
           ${isLoading
-            ? "bg-amber-500/40 text-amber-200 cursor-not-allowed"
-            : "bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 hover:bg-amber-400"
+            ? "bg-primary/40 text-on-primary cursor-not-allowed"
+            : "bg-primary text-on-primary hover:bg-primary-active"
           }
         `}
       >
         {isLoading ? (
           <span className="flex items-center justify-center gap-2">
-            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-amber-200 border-t-transparent" />
+            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-on-primary border-t-transparent" />
             {t.input.submitting}
           </span>
         ) : (
           <span className="flex items-center justify-center gap-2">
             {t.input.submit}
-            <span className="hidden rounded border border-slate-950/30 px-1 py-px text-xs font-normal opacity-60 sm:inline">
+            <span className="hidden rounded border border-on-primary/30 px-1 py-px text-xs font-normal opacity-60 sm:inline">
               ⌘↵
             </span>
           </span>

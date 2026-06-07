@@ -15,7 +15,7 @@ export default function DecodeQuickActions({
   const qa = t.suggestions.quickActions;
 
   const buttonClass =
-    "inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:border-slate-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-40";
+    "inline-flex items-center gap-1.5 rounded-md border border-hairline-strong bg-surface-elevated/60 px-3 py-2 text-xs font-semibold text-body transition-colors hover:border-muted-soft hover:text-ink disabled:cursor-not-allowed disabled:opacity-40";
 
   return (
     <div className="mt-1 flex flex-wrap gap-2">

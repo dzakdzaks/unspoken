@@ -40,26 +40,26 @@ export default function AuthScreen() {
   }
 
   return (
-    <div className="flex h-[100dvh] items-center justify-center bg-slate-950 px-4">
+    <div className="flex h-[100dvh] items-center justify-center bg-canvas px-4">
       <div className="w-full max-w-sm">
         {/* Brand */}
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-black tracking-tight text-white">
-            Unspoken<span className="text-amber-400">AI</span>
+          <h1 className="text-3xl font-bold tracking-tight text-ink">
+            Unspoken<span className="text-primary">AI</span>
           </h1>
-          <p className="mt-2 text-sm text-slate-400">
+          <p className="mt-2 text-sm text-muted">
             {mode === "signin" ? a.signInTitle : a.signUpTitle}
           </p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl"
+          className="rounded-lg border border-hairline bg-surface-card p-6"
         >
           <div className="flex flex-col gap-4">
             {mode === "signup" && (
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <label className="text-xs font-semibold uppercase tracking-wide text-muted">
                   {a.nameLabel}
                 </label>
                 <input
@@ -69,13 +69,13 @@ export default function AuthScreen() {
                   placeholder={a.namePlaceholder}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                  className="rounded-md border border-hairline-strong bg-surface-elevated px-3 py-2 text-sm text-body-strong placeholder-muted-soft outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                 />
               </div>
             )}
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <label className="text-xs font-semibold uppercase tracking-wide text-muted">
                 {a.emailLabel}
               </label>
               <input
@@ -85,12 +85,12 @@ export default function AuthScreen() {
                 placeholder={a.emailPlaceholder}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="rounded-md border border-hairline-strong bg-surface-elevated px-3 py-2 text-sm text-body-strong placeholder-muted-soft outline-none focus:border-primary focus:ring-1 focus:ring-primary"
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <label className="text-xs font-semibold uppercase tracking-wide text-muted">
                 {a.passwordLabel}
               </label>
               <input
@@ -102,12 +102,12 @@ export default function AuthScreen() {
                 placeholder={a.passwordPlaceholder}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="rounded-md border border-hairline-strong bg-surface-elevated px-3 py-2 text-sm text-body-strong placeholder-muted-soft outline-none focus:border-primary focus:ring-1 focus:ring-primary"
               />
             </div>
 
             {error && (
-              <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+              <p className="rounded-md border border-accent-rose/30 bg-accent-rose/10 px-3 py-2 text-sm text-accent-rose">
                 {error}
               </p>
             )}
@@ -115,7 +115,7 @@ export default function AuthScreen() {
             <button
               type="submit"
               disabled={submitting}
-              className="mt-1 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-amber-400 disabled:opacity-60"
+              className="mt-1 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-active disabled:opacity-60"
             >
               {submitting
                 ? a.submitting
@@ -128,7 +128,7 @@ export default function AuthScreen() {
 
         <button
           onClick={toggleMode}
-          className="mt-4 w-full text-center text-sm text-slate-500 hover:text-slate-300 transition-colors"
+          className="mt-4 w-full text-center text-sm text-muted hover:text-body transition-colors"
         >
           {mode === "signin" ? a.toggleSignUp : a.toggleSignIn}
         </button>

@@ -47,7 +47,7 @@ export default function ChatComposer({
   }
 
   return (
-    <div className="border-t border-slate-800 bg-slate-900/80 p-3 backdrop-blur-md">
+    <div className="border-t border-hairline bg-surface-card/80 p-3 backdrop-blur-md">
       <div className="mx-auto flex max-w-2xl items-end gap-2">
         <div className="relative flex-1">
           <textarea
@@ -57,17 +57,17 @@ export default function ChatComposer({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             rows={1}
-            className={`w-full resize-none rounded-2xl border bg-slate-800/80 px-4 py-3 pr-12 text-base leading-relaxed text-slate-100 placeholder-slate-500 outline-none transition-all focus:ring-2 focus:ring-amber-500/20 ${
+            className={`w-full resize-none rounded-lg border bg-surface-elevated/80 px-4 py-3 pr-12 text-base leading-relaxed text-body-strong placeholder-muted-soft outline-none transition-all focus:ring-2 focus:ring-primary/20 ${
               isOverLimit
-                ? "border-red-500/60 focus:border-red-500/60"
-                : "border-slate-700 focus:border-amber-500/60"
+                ? "border-accent-rose/60 focus:border-accent-rose/60"
+                : "border-hairline-strong focus:border-primary/60"
             }`}
             aria-label={placeholder}
           />
           {value.length > MAX_CHARS - 60 && (
             <span
               className={`absolute bottom-2 right-3 text-xs font-medium tabular-nums ${
-                isOverLimit ? "text-red-400" : "text-amber-400"
+                isOverLimit ? "text-accent-rose" : "text-primary"
               }`}
             >
               {remaining}
@@ -78,7 +78,7 @@ export default function ChatComposer({
           onClick={trySubmit}
           disabled={!canSend}
           aria-label={t.chat.send}
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 transition-all hover:bg-amber-400 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary transition-all hover:bg-primary-active active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

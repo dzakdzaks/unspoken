@@ -127,17 +127,17 @@ export default function SettingsPanel({
   const models = settings.provider ? PROVIDER_MODELS[settings.provider] : [];
 
   const selectClass =
-    "w-full rounded-lg border border-slate-600 bg-slate-700/60 px-3 py-2 text-sm text-slate-200 outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-colors";
+    "w-full rounded-md border border-hairline-strong bg-surface-elevated/60 px-3 py-2 text-sm text-body outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/30 transition-colors";
 
   return (
     <div ref={panelRef} className="relative">
       <button
         onClick={() => setIsOpen((v) => !v)}
         aria-label={t.settings.title}
-        className={`flex items-center justify-center rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors ${
+        className={`flex items-center justify-center rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors ${
           isActive
-            ? "border-amber-500/40 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20"
-            : "border-slate-600 bg-slate-700/40 text-slate-400 hover:border-slate-500 hover:text-slate-300"
+            ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
+            : "border-hairline-strong bg-surface-elevated/40 text-muted hover:border-muted-soft hover:text-body"
         }`}
       >
         <svg
@@ -160,14 +160,14 @@ export default function SettingsPanel({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-xl border border-slate-700 bg-slate-800 p-4 shadow-2xl shadow-black/60">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-400">
+        <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-lg border border-hairline bg-surface-card p-4 shadow-2xl shadow-black/60">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted">
             {t.settings.title}
           </p>
 
           {/* Provider */}
           <div className="mb-3">
-            <label className="mb-1.5 block text-xs font-medium text-slate-400">
+            <label className="mb-1.5 block text-xs font-medium text-muted">
               {t.settings.provider}
             </label>
             <select
@@ -189,7 +189,7 @@ export default function SettingsPanel({
           {/* Model — only shown when a provider is selected */}
           {settings.provider && (
             <div className="mb-3">
-              <label className="mb-1.5 block text-xs font-medium text-slate-400">
+              <label className="mb-1.5 block text-xs font-medium text-muted">
                 {t.settings.model}
               </label>
               <select
@@ -209,7 +209,7 @@ export default function SettingsPanel({
           {/* API Key — only shown when a provider is selected */}
           {settings.provider && (
             <div className="mb-1">
-              <label className="mb-1.5 block text-xs font-medium text-slate-400">
+              <label className="mb-1.5 block text-xs font-medium text-muted">
                 {t.settings.apiKey}
               </label>
               <div className="relative">
@@ -218,14 +218,14 @@ export default function SettingsPanel({
                   value={settings.apiKey}
                   onChange={(e) => handleApiKeyChange(e.target.value)}
                   placeholder={t.settings.apiKeyPlaceholder}
-                  className="w-full rounded-lg border border-slate-600 bg-slate-700/60 py-2 pl-3 pr-9 text-sm text-slate-200 placeholder-slate-500 outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-colors"
+                  className="w-full rounded-md border border-hairline-strong bg-surface-elevated/60 py-2 pl-3 pr-9 text-sm text-body placeholder-muted-soft outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/30 transition-colors"
                   autoComplete="off"
                   spellCheck={false}
                 />
                 <button
                   type="button"
                   onClick={() => setShowKey((v) => !v)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-body transition-colors"
                   tabIndex={-1}
                 >
                   {showKey ? (
@@ -259,7 +259,7 @@ export default function SettingsPanel({
                   )}
                 </button>
               </div>
-              <p className="mt-1.5 text-xs text-slate-500">
+              <p className="mt-1.5 text-xs text-muted">
                 {t.settings.apiKeyHint}
               </p>
             </div>

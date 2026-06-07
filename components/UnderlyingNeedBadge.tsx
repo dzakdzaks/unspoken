@@ -48,7 +48,7 @@ function getNeedColor(need: string): string {
   for (const [pattern, cls] of Object.entries(NEED_COLORS)) {
     if (key.includes(pattern)) return cls;
   }
-  return "border-slate-600/40 bg-slate-700/20 text-slate-300";
+  return "border-hairline-strong/40 bg-surface-elevated/40 text-body";
 }
 
 export default function UnderlyingNeedBadge({
@@ -58,12 +58,12 @@ export default function UnderlyingNeedBadge({
   const colorClass = getNeedColor(need);
 
   return (
-    <div className="rounded-xl border border-slate-700/50 bg-slate-800/60 p-5">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
+    <div className="rounded-lg border border-hairline-strong/50 bg-surface-elevated/60 p-5">
+      <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted">
         {t.results.underlyingNeed}
       </p>
       <span
-        className={`inline-block rounded-lg border px-3 py-1.5 text-sm font-semibold ${colorClass}`}
+        className={`inline-block rounded-md border px-3 py-1.5 text-sm font-semibold ${colorClass}`}
       >
         {need}
       </span>

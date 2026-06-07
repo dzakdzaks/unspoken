@@ -24,7 +24,7 @@ interface ChatThreadProps {
 function UserBubble({ content }: { content: string }) {
   return (
     <div className="flex justify-end">
-      <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-amber-500 px-4 py-2.5 text-sm font-medium leading-relaxed text-slate-950">
+      <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-lg rounded-br-sm bg-primary px-4 py-2.5 text-sm font-medium leading-relaxed text-on-primary">
         {content}
       </div>
     </div>
@@ -34,10 +34,10 @@ function UserBubble({ content }: { content: string }) {
 export function TypingIndicator() {
   return (
     <div className="flex justify-start">
-      <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-md border border-slate-700/50 bg-slate-800/60 px-4 py-3.5">
-        <span className="inline-block h-2 w-2 animate-thinking-bounce rounded-full bg-amber-400" />
-        <span className="inline-block h-2 w-2 animate-thinking-bounce-delay-1 rounded-full bg-amber-400" />
-        <span className="inline-block h-2 w-2 animate-thinking-bounce-delay-2 rounded-full bg-amber-400" />
+      <div className="flex items-center gap-1.5 rounded-lg rounded-bl-sm border border-hairline-strong/50 bg-surface-elevated/60 px-4 py-3.5">
+        <span className="inline-block h-2 w-2 animate-thinking-bounce rounded-full bg-primary" />
+        <span className="inline-block h-2 w-2 animate-thinking-bounce-delay-1 rounded-full bg-primary" />
+        <span className="inline-block h-2 w-2 animate-thinking-bounce-delay-2 rounded-full bg-primary" />
       </div>
     </div>
   );
@@ -52,10 +52,10 @@ function AssistantBubble({
 }) {
   return (
     <div className="flex justify-start">
-      <div className="max-w-[85%] break-words rounded-2xl rounded-bl-md border border-slate-700/50 bg-slate-800/60 px-4 py-2.5">
+      <div className="max-w-[85%] break-words rounded-lg rounded-bl-sm border border-hairline-strong/50 bg-surface-elevated/60 px-4 py-2.5">
         <Markdown content={content} />
         {streaming && (
-          <span className="-mt-1 inline-block h-[1.1em] w-0.5 animate-blink bg-amber-400 align-middle" />
+          <span className="-mt-1 inline-block h-[1.1em] w-0.5 animate-blink bg-primary align-middle" />
         )}
       </div>
     </div>
@@ -134,8 +134,8 @@ export default function ChatThread({
         ))}
 
       {error && (
-        <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3">
-          <p className="text-sm font-semibold text-red-400">{error}</p>
+        <div className="rounded-lg border border-accent-rose/30 bg-accent-rose/10 p-3">
+          <p className="text-sm font-semibold text-accent-rose">{error}</p>
         </div>
       )}
 

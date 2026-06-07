@@ -42,8 +42,8 @@ export default function UrgencyMeter({ level }: UrgencyMeterProps) {
   const urgency = t.urgency[safe];
 
   return (
-    <div className={`rounded-xl border p-5 ${style.bg}`}>
-      <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
+    <div className={`rounded-lg border p-5 ${style.bg}`}>
+      <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted">
         {t.results.threatLevel}
       </p>
       <div className="flex flex-col gap-2.5">
@@ -56,7 +56,7 @@ export default function UrgencyMeter({ level }: UrgencyMeterProps) {
             <div
               key={n}
               className={`h-2 flex-1 rounded-full transition-all duration-300 ${
-                n <= safe ? style.barColor : "bg-slate-700"
+                n <= safe ? style.barColor : "bg-surface-elevated"
               }`}
             />
           ))}
@@ -64,7 +64,7 @@ export default function UrgencyMeter({ level }: UrgencyMeterProps) {
         <span className={`text-sm font-bold ${style.color}`}>
           {t.urgency.score(safe, urgency.label)}
         </span>
-        <p className="text-xs leading-relaxed text-slate-400">{urgency.desc}</p>
+        <p className="text-xs leading-relaxed text-muted">{urgency.desc}</p>
       </div>
     </div>
   );

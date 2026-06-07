@@ -19,7 +19,7 @@ export default function SuggestionChips({
 
   return (
     <div className="mt-2 flex flex-col gap-2">
-      <p className="text-[0.7rem] font-semibold uppercase tracking-widest text-slate-500">
+      <p className="text-[0.7rem] font-semibold uppercase tracking-widest text-muted">
         {t.suggestions.heading}
       </p>
       <div className="flex flex-wrap gap-2">
@@ -29,7 +29,7 @@ export default function SuggestionChips({
             type="button"
             onClick={() => onSelect(s)}
             disabled={disabled}
-            className="rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-left text-xs font-medium text-amber-300 transition-colors hover:border-amber-400/70 hover:bg-amber-500/20 hover:text-amber-200 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-left text-xs font-medium text-primary transition-colors hover:border-primary/70 hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {s}
           </button>

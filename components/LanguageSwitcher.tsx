@@ -14,15 +14,15 @@ export default function LanguageSwitcher() {
     <div
       role="group"
       aria-label="Select language"
-      className="inline-flex items-center rounded-full border border-slate-700/60 bg-slate-800/60 p-0.5 text-xs font-semibold backdrop-blur-sm"
+      className="inline-flex items-center rounded-full border border-hairline-strong/60 bg-surface-elevated/60 p-0.5 text-xs font-semibold backdrop-blur-sm"
     >
       <button
         onClick={() => toggle("en")}
         aria-pressed={locale === "en"}
         className={`rounded-full px-3 py-1 transition-all duration-200 ${
           locale === "en"
-            ? "bg-amber-500 text-slate-950 shadow-sm"
-            : "text-slate-400 hover:text-slate-200"
+            ? "bg-primary text-on-primary"
+            : "text-muted hover:text-body-strong"
         }`}
       >
         EN
@@ -32,8 +32,8 @@ export default function LanguageSwitcher() {
         aria-pressed={locale === "id"}
         className={`rounded-full px-3 py-1 transition-all duration-200 ${
           locale === "id"
-            ? "bg-amber-500 text-slate-950 shadow-sm"
-            : "text-slate-400 hover:text-slate-200"
+            ? "bg-primary text-on-primary"
+            : "text-muted hover:text-body-strong"
         }`}
       >
         ID

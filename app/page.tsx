@@ -226,8 +226,8 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="flex h-[100dvh] items-center justify-center bg-slate-950">
-        <span className="h-6 w-6 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
+      <div className="flex h-[100dvh] items-center justify-center bg-canvas">
+        <span className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
     );
   }
@@ -252,10 +252,10 @@ export default function Home() {
   const showEmpty = activeRoomId === null;
 
   return (
-    <div className="flex h-[100dvh] overflow-hidden bg-slate-950 text-slate-100">
+    <div className="flex h-[100dvh] overflow-hidden bg-canvas text-body-strong">
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-72 border-r border-slate-800 bg-slate-900 transition-transform duration-200 md:static md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 w-72 border-r border-hairline bg-surface-card transition-transform duration-200 md:static md:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -280,11 +280,11 @@ export default function Home() {
 
       {/* Main column */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-2 border-b border-slate-800 px-4 py-3">
+        <header className="flex items-center gap-2 border-b border-hairline px-4 py-3">
           <button
             onClick={() => setSidebarOpen((v) => !v)}
             aria-label={t.chat.menu}
-            className="rounded-lg border border-slate-700 p-2 text-slate-400 hover:text-slate-200 md:hidden"
+            className="rounded-md border border-hairline-strong p-2 text-muted hover:text-body-strong md:hidden"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -300,17 +300,17 @@ export default function Home() {
             </svg>
           </button>
 
-          <h1 className="flex-1 truncate text-lg font-black tracking-tight">
-            Unspoken<span className="text-amber-400">AI</span>
+          <h1 className="flex-1 truncate text-lg font-bold tracking-tight">
+            Unspoken<span className="text-primary">AI</span>
           </h1>
 
           {/* User name + sign out */}
-          <span className="hidden truncate text-sm text-slate-400 sm:block max-w-[140px]">
+          <span className="hidden truncate text-sm text-muted sm:block max-w-[140px]">
             {user.name}
           </span>
           <button
             onClick={signOut}
-            className="rounded-lg border border-slate-700 px-2.5 py-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors"
+            className="rounded-md border border-hairline-strong px-2.5 py-1.5 text-xs text-muted hover:text-body-strong transition-colors"
           >
             {t.auth.signOut}
           </button>
@@ -322,14 +322,14 @@ export default function Home() {
         <div className="flex-1 overflow-y-auto">
           {showEmpty ? (
             <div className="mx-auto flex min-h-full max-w-lg flex-col items-center justify-center px-4 py-10 text-center">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-amber-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                 {t.header.badge}
               </div>
-              <h2 className="text-2xl font-black tracking-tight text-white">
+              <h2 className="text-2xl font-bold tracking-tight text-ink">
                 {t.chat.emptyTitle}
               </h2>
-              <p className="mt-2 max-w-sm text-sm text-slate-400">
+              <p className="mt-2 max-w-sm text-sm text-muted">
                 {t.chat.emptySubtitle}
               </p>
               <div className="mt-5 flex flex-wrap justify-center gap-2">
@@ -337,15 +337,15 @@ export default function Home() {
                   <button
                     key={ex}
                     onClick={() => handleSend(ex.replace(/^["']|["']$/g, ""))}
-                    className="rounded-full border border-slate-700 bg-slate-800/60 px-3 py-1.5 text-xs text-slate-400 transition-colors hover:border-slate-500 hover:text-slate-300"
+                    className="rounded-full border border-hairline-strong bg-surface-elevated/60 px-3 py-1.5 text-xs text-muted transition-colors hover:border-muted-soft hover:text-body"
                   >
                     {ex}
                   </button>
                 ))}
               </div>
               {error && (
-                <div className="mt-5 w-full rounded-xl border border-red-500/30 bg-red-500/10 p-3">
-                  <p className="text-sm font-semibold text-red-400">{error}</p>
+                <div className="mt-5 w-full rounded-lg border border-accent-rose/30 bg-accent-rose/10 p-3">
+                  <p className="text-sm font-semibold text-accent-rose">{error}</p>
                 </div>
               )}
             </div>
@@ -367,7 +367,7 @@ export default function Home() {
           placeholder={composerPlaceholder}
         />
 
-        <footer className="border-t border-slate-800 px-4 py-2 text-center text-xs text-slate-600">
+        <footer className="border-t border-hairline px-4 py-2 text-center text-xs text-muted-soft">
           {t.footer.privacy}
         </footer>
       </div>

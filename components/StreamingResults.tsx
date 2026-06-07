@@ -30,7 +30,7 @@ function Skeleton({
       {Array.from({ length: lines }).map((_, i) => (
         <div
           key={i}
-          className="h-3 animate-pulse rounded-full bg-slate-700/60"
+          className="h-3 animate-pulse rounded-full bg-surface-elevated"
           style={{ width: i === lines - 1 && lines > 1 ? "65%" : "100%" }}
         />
       ))}
@@ -50,28 +50,28 @@ export default function StreamingResults({ partial }: StreamingResultsProps) {
   return (
     <div className="flex w-full flex-col gap-4">
       {/* Status banner */}
-      <div className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-2.5">
-        <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-amber-500/30 border-t-amber-400" />
-        <span className="text-xs font-semibold uppercase tracking-widest text-amber-400/70">
+      <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2.5">
+        <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+        <span className="text-xs font-semibold uppercase tracking-widest text-primary/70">
           {t.streaming.status}
         </span>
-        <span className="ml-auto text-xs text-slate-500">{phaseLabel}</span>
+        <span className="ml-auto text-xs text-muted">{phaseLabel}</span>
       </div>
 
       {/* Decoded Signal card */}
-      <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5">
+      <div className="rounded-lg border border-primary/20 bg-primary/5 p-5">
         <div className="mb-3 flex items-center gap-2">
-          <div className="h-px flex-1 bg-amber-500/20" />
-          <p className="text-xs font-semibold uppercase tracking-widest text-amber-500/70">
+          <div className="h-px flex-1 bg-primary/20" />
+          <p className="text-xs font-semibold uppercase tracking-widest text-primary/70">
             {t.results.decodedSignal}
           </p>
-          <div className="h-px flex-1 bg-amber-500/20" />
+          <div className="h-px flex-1 bg-primary/20" />
         </div>
         {hasTranslation ? (
-          <p className="text-base font-semibold leading-relaxed text-slate-100">
+          <p className="text-base font-semibold leading-relaxed text-body-strong">
             {partial.translation ?? partial.translationPartial}
             {!partial.translation && (
-              <span className="ml-0.5 inline-block h-4 w-1 animate-pulse bg-amber-400 align-middle" />
+              <span className="ml-0.5 inline-block h-4 w-1 animate-pulse bg-primary align-middle" />
             )}
           </p>
         ) : (
@@ -82,12 +82,12 @@ export default function StreamingResults({ partial }: StreamingResultsProps) {
       {/* Need + Urgency grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {/* Underlying Need */}
-        <div className="rounded-xl border border-slate-700/50 bg-slate-800/60 p-5">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
+        <div className="rounded-lg border border-hairline-strong/50 bg-surface-elevated/60 p-5">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted">
             {t.results.underlyingNeed}
           </p>
           {hasNeed ? (
-            <span className="inline-block rounded-lg border border-slate-500/30 bg-slate-500/10 px-3 py-1.5 text-sm font-semibold text-slate-300">
+            <span className="inline-block rounded-md border border-hairline-strong bg-surface-card px-3 py-1.5 text-sm font-semibold text-body-strong">
               {partial.underlying_need}
             </span>
           ) : (
@@ -99,8 +99,8 @@ export default function StreamingResults({ partial }: StreamingResultsProps) {
         {hasUrgency ? (
           <UrgencyMeter level={partial.urgency_level!} />
         ) : (
-          <div className="rounded-xl border border-slate-700/50 bg-slate-800/60 p-5">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
+          <div className="rounded-lg border border-hairline-strong/50 bg-surface-elevated/60 p-5">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted">
               {t.results.threatLevel}
             </p>
             <div className="flex flex-col gap-2.5">
@@ -108,7 +108,7 @@ export default function StreamingResults({ partial }: StreamingResultsProps) {
                 {[1, 2, 3, 4, 5].map((n) => (
                   <div
                     key={n}
-                    className="h-2 flex-1 animate-pulse rounded-full bg-slate-700/60"
+                    className="h-2 flex-1 animate-pulse rounded-full bg-surface-elevated"
                   />
                 ))}
               </div>
@@ -119,8 +119,8 @@ export default function StreamingResults({ partial }: StreamingResultsProps) {
       </div>
 
       {/* Action Plan */}
-      <div className="rounded-xl border border-slate-700/50 bg-slate-800/60 p-5">
-        <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-slate-500">
+      <div className="rounded-lg border border-hairline-strong/50 bg-surface-elevated/60 p-5">
+        <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted">
           {t.results.actionPlan}
         </p>
 
@@ -128,10 +128,10 @@ export default function StreamingResults({ partial }: StreamingResultsProps) {
           <ol className="flex flex-col gap-3">
             {partial.action_plan!.map((step, i) => (
               <li key={i} className="flex items-start gap-3">
-                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 border-slate-600 bg-slate-900/60 text-xs font-bold text-amber-500">
+                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 border-hairline-strong bg-surface-card text-xs font-bold text-primary">
                   {i + 1}
                 </span>
-                <span className="text-sm leading-relaxed text-slate-300">
+                <span className="text-sm leading-relaxed text-body">
                   {step}
                 </span>
               </li>
@@ -141,7 +141,7 @@ export default function StreamingResults({ partial }: StreamingResultsProps) {
           <div className="flex flex-col gap-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex items-start gap-3">
-                <div className="mt-0.5 h-6 w-6 shrink-0 animate-pulse rounded-md bg-slate-700/60" />
+                <div className="mt-0.5 h-6 w-6 shrink-0 animate-pulse rounded-md bg-surface-elevated" />
                 <Skeleton lines={2} className="flex-1" />
               </div>
             ))}
