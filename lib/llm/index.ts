@@ -9,17 +9,20 @@ import {
 import { createOpenAIProvider } from "./openai";
 import { createAnthropicProvider } from "./anthropic";
 import { createGeminiProvider } from "./gemini";
+import { createGroqProvider } from "./groq";
 
 export const PROVIDER_DEFAULTS: Record<string, string> = {
   openai: "gpt-4.1",
   anthropic: "claude-sonnet-4-5",
   gemini: "gemini-2.5-flash",
+  groq: "openai/gpt-oss-120b",
 };
 
 export const CHEAP_MODEL_DEFAULTS: Record<string, string> = {
   openai: "gpt-4o-mini",
   anthropic: "claude-haiku-4-5",
   gemini: "gemini-2.5-flash",
+  groq: "openai/gpt-oss-120b",
 };
 
 export interface LLMConfig {
@@ -42,10 +45,12 @@ function buildProvider(providerName: string, model: string, apiKey?: string): LL
       return createAnthropicProvider(model, apiKey);
     case "gemini":
       return createGeminiProvider(model, apiKey);
+    case "groq":
+      return createGroqProvider(model, apiKey);
     default:
       throw new LLMError(
         "UNKNOWN_PROVIDER",
-        `Unknown LLM provider: "${providerName}". Supported values: openai, anthropic, gemini.`
+        `Unknown LLM provider: "${providerName}". Supported values: openai, anthropic, gemini, groq.`
       );
   }
 }

@@ -64,7 +64,7 @@ export const TranslateRequestSchema = z.object({
     .min(1, "Please describe what she said or did.")
     .max(500, "Input must be 500 characters or fewer."),
   lang: z.enum(["en", "id"]).optional().default("en"),
-  provider: z.enum(["openai", "anthropic", "gemini"]).optional(),
+  provider: z.enum(["openai", "anthropic", "gemini", "groq"]).optional(),
   model: z.string().max(100).optional(),
   apiKey: z.string().max(200).optional(),
 });
@@ -101,7 +101,7 @@ export const SendMessageRequestSchema = z.object({
     .min(1, "Please type a message.")
     .max(500, "Message must be 500 characters or fewer."),
   lang: z.enum(["en", "id"]).optional().default("en"),
-  provider: z.enum(["openai", "anthropic", "gemini"]).optional(),
+  provider: z.enum(["openai", "anthropic", "gemini", "groq"]).optional(),
   model: z.string().max(100).optional(),
   apiKey: z.string().max(200).optional(),
 });

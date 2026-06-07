@@ -100,6 +100,7 @@ export const translations = {
         openai: "OpenAI",
         anthropic: "Anthropic",
         gemini: "Google Gemini",
+        groq: "Groq",
       },
     },
     chat: {
@@ -244,6 +245,7 @@ export const translations = {
         openai: "OpenAI",
         anthropic: "Anthropic",
         gemini: "Google Gemini",
+        groq: "Groq",
       },
     },
     chat: {

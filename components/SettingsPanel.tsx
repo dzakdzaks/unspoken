@@ -5,7 +5,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { useAuth } from "@/lib/auth/context";
 import LanguageSwitcher from "./LanguageSwitcher";
 
-export type LLMProvider = "openai" | "anthropic" | "gemini";
+export type LLMProvider = "openai" | "anthropic" | "gemini" | "groq";
 
 export interface LLMSettings {
   provider: LLMProvider | "";
@@ -43,6 +43,12 @@ const PROVIDER_MODELS: Record<LLMProvider, { id: string; label: string }[]> = {
     { id: "gemini-2.5-pro", label: "Gemini 2.5 Pro" },
     { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },
     { id: "gemini-2.0-flash", label: "Gemini 2.0 Flash" },
+  ],
+  groq: [
+    { id: "openai/gpt-oss-20b", label: "GPT-OSS 20B" },
+    { id: "openai/gpt-oss-120b", label: "GPT-OSS 120B" },
+    { id: "llama-3.3-70b-versatile", label: "Llama 3.3 70B Versatile" },
+    { id: "llama-3.1-8b-instant", label: "Llama 3.1 8B Instant" },
   ],
 };
 
@@ -228,6 +234,7 @@ export default function SettingsPanel({
                 {t.settings.providerLabels.anthropic}
               </option>
               <option value="gemini">{t.settings.providerLabels.gemini}</option>
+              <option value="groq">{t.settings.providerLabels.groq}</option>
             </select>
           </div>
 

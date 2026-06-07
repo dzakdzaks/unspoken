@@ -106,11 +106,11 @@ Built as a portfolio project demonstrating production-grade Generative AI workfl
 
 Every `POST /api/rooms/[id]/messages` request produces a `send-message` trace in [Langfuse](https://langfuse.com) with nested generation observations for each LLM call:
 
-| Observation | Description |
-| ----------- | ----------- |
-| `decode`    | First-message structured-output call (translate to JSON) |
-| `chat`      | Follow-up conversational reply |
-| `suggestions` | Lightweight follow-up suggestion generation |
+| Observation   | Description                                              |
+| ------------- | -------------------------------------------------------- |
+| `decode`      | First-message structured-output call (translate to JSON) |
+| `chat`        | Follow-up conversational reply                           |
+| `suggestions` | Lightweight follow-up suggestion generation              |
 
 Each generation records the model name, input messages, full output, and token usage (input / output / total) so Langfuse can compute cost. Traces are grouped by `userId` (the anonymous browser ID) and `sessionId` (the room ID).
 
@@ -139,21 +139,21 @@ cp .env.example .env.local
 
 ### Environment Variables
 
-| Variable               | Required              | Default              | Description                                           |
-| ---------------------- | --------------------- | -------------------- | ----------------------------------------------------- |
-| `LLM_PROVIDER`         | No                    | `openai`             | Active provider: `openai`, `anthropic`, or `gemini`   |
-| `LLM_MODEL`            | No                    | Per-provider default | Override model name                                   |
-| `OPENAI_API_KEY`       | If using OpenAI       | —                    | OpenAI API key                                        |
-| `ANTHROPIC_API_KEY`    | If using Anthropic    | —                    | Anthropic API key                                     |
-| `GOOGLE_API_KEY`       | If using Gemini       | —                    | Google AI Studio API key                              |
-| `MONGODB_URI`          | Yes                   | —                    | MongoDB connection string (Atlas or local)            |
-| `MONGODB_DB`           | No                    | `unspoken`           | Database name                                         |
-| `AUTH_SECRET`          | Yes                   | —                    | Random 32+ char string used to sign session JWTs      |
-| `RATE_LIMIT_MAX`       | No                    | `10`                 | Max requests per window per IP                        |
-| `RATE_LIMIT_WINDOW_MS` | No                    | `60000`              | Rate limit window in milliseconds                     |
-| `LANGFUSE_PUBLIC_KEY`  | No                    | —                    | Langfuse public key — traces are skipped when absent  |
-| `LANGFUSE_SECRET_KEY`  | No                    | —                    | Langfuse secret key                                   |
-| `LANGFUSE_BASE_URL`    | No                    | `https://cloud.langfuse.com` | Langfuse region URL (EU / US / JP / HIPAA)  |
+| Variable               | Required           | Default                      | Description                                          |
+| ---------------------- | ------------------ | ---------------------------- | ---------------------------------------------------- |
+| `LLM_PROVIDER`         | No                 | `openai`                     | Active provider: `openai`, `anthropic`, or `gemini`  |
+| `LLM_MODEL`            | No                 | Per-provider default         | Override model name                                  |
+| `OPENAI_API_KEY`       | If using OpenAI    | —                            | OpenAI API key                                       |
+| `ANTHROPIC_API_KEY`    | If using Anthropic | —                            | Anthropic API key                                    |
+| `GOOGLE_API_KEY`       | If using Gemini    | —                            | Google AI Studio API key                             |
+| `MONGODB_URI`          | Yes                | —                            | MongoDB connection string (Atlas or local)           |
+| `MONGODB_DB`           | No                 | `unspoken`                   | Database name                                        |
+| `AUTH_SECRET`          | Yes                | —                            | Random 32+ char string used to sign session JWTs     |
+| `RATE_LIMIT_MAX`       | No                 | `10`                         | Max requests per window per IP                       |
+| `RATE_LIMIT_WINDOW_MS` | No                 | `60000`                      | Rate limit window in milliseconds                    |
+| `LANGFUSE_PUBLIC_KEY`  | No                 | —                            | Langfuse public key — traces are skipped when absent |
+| `LANGFUSE_SECRET_KEY`  | No                 | —                            | Langfuse secret key                                  |
+| `LANGFUSE_BASE_URL`    | No                 | `https://cloud.langfuse.com` | Langfuse region URL (EU / US / JP / HIPAA)           |
 
 > **Atlas note:** If your password contains special characters (e.g. `@`), URL-encode them in `MONGODB_URI` — `@` becomes `%40`.
 > In Atlas → Network Access, add your IP (or `0.0.0.0/0` for development).
@@ -246,15 +246,6 @@ components/
   "follow_ups":          ["string", "string", "string"]
 }
 ```
-
-## Deploy to Vercel
-
-```bash
-vercel --prod
-```
-
-Set all environment variables in Vercel → Project → Settings → Environment Variables.
-MongoDB Atlas: ensure the Vercel egress IP range is allowlisted, or use `0.0.0.0/0`.
 
 ## Rate Limiting
 
