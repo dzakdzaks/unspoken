@@ -354,7 +354,7 @@ export default function Home() {
           placeholder={composerPlaceholder}
         />
 
-        <footer className="border-t border-hairline px-4 py-2 text-center text-xs text-muted-soft">
+        <footer className="bg-surface-card/80 px-4 pb-3 text-center text-xs text-muted-soft backdrop-blur-md">
           {t.footer.privacy}
         </footer>
       </div>
