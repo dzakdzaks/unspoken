@@ -8,6 +8,7 @@ import {
   fetchRooms,
   createRoom,
   deleteRoom,
+  deleteMessage,
   fetchMessages,
   streamMessage,
 } from "@/lib/chat/client";
@@ -16,7 +17,10 @@ import SettingsPanel, {
   DEFAULT_SETTINGS,
 } from "@/components/SettingsPanel";
 import ChatSidebar from "@/components/ChatSidebar";
-import ChatThread, { type StreamingState } from "@/components/ChatThread";
+import ChatThread, {
+  ErrorBubble,
+  type StreamingState,
+} from "@/components/ChatThread";
 import ChatComposer from "@/components/ChatComposer";
 import AuthScreen from "@/components/AuthScreen";
 
@@ -55,6 +59,9 @@ export default function Home() {
 
   // One AbortController per room — streams survive room switches
   const abortRefs = useRef<Map<string, AbortController>>(new Map());
+  // Last attempted input, so a retry from the new-chat state (where no message
+  // is persisted yet) can replay it.
+  const lastInputRef = useRef<string>("");
   // Tracks which rooms have had their messages fetched so we don't re-fetch on every switch
   const loadedRooms = useRef<Set<string>>(new Set());
 
@@ -128,6 +135,7 @@ export default function Home() {
 
   async function handleSend(input: string) {
     setNullError(null);
+    lastInputRef.current = input;
 
     let roomId = activeRoomId;
     const currentMessages = roomId ? (roomStates.get(roomId)?.messages ?? []) : [];
@@ -221,6 +229,47 @@ export default function Home() {
       setRoom(targetRoomId, (s) => ({ ...s, streaming: null, error: t.errors.generic }));
       abortRefs.current.delete(targetRoomId);
     }
+  }
+
+  async function handleRetry() {
+    // New-chat error (room creation failed, nothing persisted): replay the input.
+    if (!activeRoomId) {
+      const input = lastInputRef.current;
+      if (!input) return;
+      setNullError(null);
+      await handleSend(input);
+      return;
+    }
+
+    const roomId = activeRoomId;
+    const msgs = roomStates.get(roomId)?.messages ?? [];
+    const last = msgs[msgs.length - 1];
+
+    // Generation failed: the trailing user turn is an orphan with no reply.
+    // Drop it (locally + server-side) so the retry recreates identical
+    // conditions — no duplicate turn and the correct decode-vs-text mode.
+    if (last && last.role === "user") {
+      const persisted = !last.id.startsWith("temp_");
+      setRoom(roomId, (s) => ({
+        ...s,
+        error: null,
+        messages: s.messages.filter((m) => m.id !== last.id),
+      }));
+      if (persisted) {
+        try {
+          await deleteMessage(roomId, last.id);
+        } catch {
+          // Best-effort: the resend still works; worst case is a duplicate turn.
+        }
+      }
+      await handleSend(last.content);
+      return;
+    }
+
+    // Otherwise (e.g. failed to load history): refetch the room.
+    loadedRooms.current.delete(roomId);
+    setRoom(roomId, (s) => ({ ...s, error: null }));
+    await selectRoom(roomId);
   }
 
   if (loading) {
@@ -331,8 +380,8 @@ export default function Home() {
                 ))}
               </div>
               {error && (
-                <div className="mt-5 w-full rounded-lg border border-accent-rose/30 bg-accent-rose/10 p-3">
-                  <p className="text-sm font-semibold text-accent-rose">{error}</p>
+                <div className="mt-5 w-full text-left">
+                  <ErrorBubble message={error} onRetry={handleRetry} />
                 </div>
               )}
             </div>
@@ -343,6 +392,7 @@ export default function Home() {
                 streaming={streaming}
                 error={error}
                 onSuggestionSelect={handleSend}
+                onRetry={handleRetry}
               />
             </div>
           )}

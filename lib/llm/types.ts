@@ -14,6 +14,8 @@ export interface TokenUsage {
 export interface LLMRequestOptions {
   /** Stable key so providers can reuse cached system prompt prefixes. */
   promptCacheKey?: string;
+  /** Provider-specific hint for reasoning models; ignored by providers that do not support it. */
+  reasoningEffort?: "low" | "medium" | "high";
 }
 
 export interface LLMProvider {

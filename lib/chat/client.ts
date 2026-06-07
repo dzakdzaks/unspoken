@@ -83,6 +83,17 @@ export async function fetchMessages(
   return (await res.json()) as { room: Room; messages: Message[] };
 }
 
+export async function deleteMessage(
+  roomId: string,
+  messageId: string
+): Promise<void> {
+  const res = await fetch(
+    `/api/rooms/${roomId}/messages?messageId=${encodeURIComponent(messageId)}`,
+    { method: "DELETE" }
+  );
+  if (!res.ok) throw new Error("Failed to delete message.");
+}
+
 export interface SendBody {
   input: string;
   lang: Locale;

@@ -26,6 +26,7 @@ import { checkRateLimit } from "@/lib/rateLimit";
 import { getUserId } from "@/lib/api/auth";
 import {
   addMessage,
+  deleteMessage,
   getRoom,
   listMessages,
   touchRoom,
@@ -65,6 +66,34 @@ export async function GET(
 
   const messages = await listMessages(id);
   return NextResponse.json({ room, messages });
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const userId = await getUserId(req);
+  if (!userId) {
+    return NextResponse.json({ error: "Missing user id." }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const room = await getRoom(userId, id);
+  if (!room) {
+    return NextResponse.json({ error: "Room not found." }, { status: 404 });
+  }
+
+  const messageId = req.nextUrl.searchParams.get("messageId");
+  if (!messageId) {
+    return NextResponse.json({ error: "Missing message id." }, { status: 400 });
+  }
+
+  const deleted = await deleteMessage(id, messageId);
+  if (!deleted) {
+    return NextResponse.json({ error: "Message not found." }, { status: 404 });
+  }
+
+  return NextResponse.json({ ok: true });
 }
 
 export async function POST(

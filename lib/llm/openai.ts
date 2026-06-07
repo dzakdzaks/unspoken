@@ -36,7 +36,7 @@ export function createOpenAIProvider(model = "gpt-5-mini", runtimeApiKey?: strin
             TranslationResultSchema,
             "translation_result"
           ),
-          temperature: 0.4,
+          temperature: 0.3,
         });
       } catch (err) {
         throw new LLMError("API_ERROR", "OpenAI API request failed.", err);
@@ -80,7 +80,7 @@ export function createOpenAIProvider(model = "gpt-5-mini", runtimeApiKey?: strin
             TranslationResultSchema,
             "translation_result"
           ),
-          temperature: 0.4,
+          temperature: 0.3,
           stream: true,
           stream_options: { include_usage: true },
           ...(options?.promptCacheKey
@@ -129,7 +129,7 @@ export function createOpenAIProvider(model = "gpt-5-mini", runtimeApiKey?: strin
             { role: "system", content: systemPrompt },
             ...messages.map((m) => ({ role: m.role, content: m.content })),
           ],
-          temperature: 0.6,
+          temperature: 0.3,
           stream: true,
           stream_options: { include_usage: true },
           ...(options?.promptCacheKey

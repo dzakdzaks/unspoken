@@ -108,7 +108,7 @@ export function createGeminiProvider(
             systemInstruction: systemPrompt,
             responseMimeType: "application/json",
             responseSchema: RESPONSE_SCHEMA,
-            temperature: 0.4,
+            temperature: 0.3,
           },
         });
         raw = response.text;
@@ -170,7 +170,7 @@ export function createGeminiProvider(
               : { systemInstruction: systemPrompt }),
             responseMimeType: "application/json",
             responseSchema: RESPONSE_SCHEMA,
-            temperature: 0.4,
+            temperature: 0.3,
           },
         });
 
@@ -231,7 +231,7 @@ export function createGeminiProvider(
             ...(cachedContent
               ? { cachedContent }
               : { systemInstruction: systemPrompt }),
-            temperature: 0.6,
+            temperature: 0.3,
           },
         });
 

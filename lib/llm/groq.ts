@@ -13,6 +13,25 @@ import {
 // pointed at Groq's base URL instead of pulling in a separate dependency.
 const GROQ_BASE_URL = "https://api.groq.com/openai/v1";
 
+// Default sampling temperature for all Groq calls.
+const TEMPERATURE = 0.3;
+
+// gpt-oss reasoning controls. `reasoning_format: "parsed"` keeps the model's
+// reasoning in a separate field instead of the content stream, so it never
+// pollutes the structured JSON or chat reply. `reasoning_format` is a Groq
+// extension absent from the OpenAI SDK types, so it's attached via a cast.
+function reasoningParams(options?: LLMRequestOptions) {
+  return {
+    reasoning_effort: options?.reasoningEffort ?? "high",
+    reasoning_format: "parsed",
+  } as Record<string, unknown>;
+}
+
+const DEFAULT_REASONING = {
+  reasoning_effort: "high",
+  reasoning_format: "parsed",
+} as Record<string, unknown>;
+
 export function createGroqProvider(
   model = "openai/gpt-oss-120b",
   runtimeApiKey?: string
@@ -46,7 +65,8 @@ export function createGroqProvider(
             TranslationResultSchema,
             "translation_result"
           ),
-          temperature: 0.4,
+          temperature: TEMPERATURE,
+          ...DEFAULT_REASONING,
         });
       } catch (err) {
         throw new LLMError("API_ERROR", "Groq API request failed.", err);
@@ -66,7 +86,7 @@ export function createGroqProvider(
     async *translateStream(
       input: string,
       systemPrompt: string,
-      _options?: LLMRequestOptions
+      options?: LLMRequestOptions
     ): AsyncGenerator<string, TokenUsage | undefined> {
       const client = getClient();
       let usage: TokenUsage | undefined;
@@ -82,7 +102,8 @@ export function createGroqProvider(
             TranslationResultSchema,
             "translation_result"
           ),
-          temperature: 0.4,
+          temperature: TEMPERATURE,
+          ...reasoningParams(options),
           stream: true,
           stream_options: { include_usage: true },
         });
@@ -108,7 +129,7 @@ export function createGroqProvider(
     async *chatStream(
       messages: ChatMessage[],
       systemPrompt: string,
-      _options?: LLMRequestOptions
+      options?: LLMRequestOptions
     ): AsyncGenerator<string, TokenUsage | undefined> {
       const client = getClient();
       let usage: TokenUsage | undefined;
@@ -120,7 +141,8 @@ export function createGroqProvider(
             { role: "system", content: systemPrompt },
             ...messages.map((m) => ({ role: m.role, content: m.content })),
           ],
-          temperature: 0.6,
+          temperature: TEMPERATURE,
+          ...reasoningParams(options),
           stream: true,
           stream_options: { include_usage: true },
         });

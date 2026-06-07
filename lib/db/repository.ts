@@ -170,6 +170,20 @@ export async function countMessages(roomId: string): Promise<number> {
   return col.countDocuments({ roomId: oid });
 }
 
+/** Deletes a single message, scoped to its room. Used to clear an orphaned
+ * user turn (one whose assistant reply failed) before a retry. */
+export async function deleteMessage(
+  roomId: string,
+  messageId: string
+): Promise<boolean> {
+  const roomOid = toObjectId(roomId);
+  const msgOid = toObjectId(messageId);
+  if (!roomOid || !msgOid) return false;
+  const col = await messages();
+  const res = await col.deleteOne({ _id: msgOid, roomId: roomOid });
+  return res.deletedCount > 0;
+}
+
 interface NewMessage {
   role: Role;
   kind: MessageKind;

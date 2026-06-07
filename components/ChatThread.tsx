@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { Message } from "@/lib/chat/types";
+import { useI18n } from "@/lib/i18n/context";
 import { parsePartialTranslation } from "@/lib/partialParse";
 import ResultsDashboard from "./ResultsDashboard";
 import StreamingResults from "./StreamingResults";
@@ -20,6 +21,42 @@ interface ChatThreadProps {
   streaming: StreamingState | null;
   error: string | null;
   onSuggestionSelect: (text: string) => void;
+  onRetry?: () => void;
+}
+
+export function ErrorBubble({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry?: () => void;
+}) {
+  const { t } = useI18n();
+  return (
+    <div className="rounded-lg border border-accent-rose/30 bg-accent-rose/10 p-3">
+      <p className="text-sm font-semibold text-accent-rose">{message}</p>
+      {onRetry && (
+        <button
+          onClick={onRetry}
+          className="mt-2.5 inline-flex items-center gap-1.5 rounded-md border border-accent-rose/40 px-3 py-1.5 text-xs font-semibold text-accent-rose transition-colors hover:bg-accent-rose/15"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            className="h-3.5 w-3.5"
+          >
+            <path
+              fillRule="evenodd"
+              d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.989a.75.75 0 0 0-.75.75v4.242a.75.75 0 0 0 1.5 0v-2.43l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.23-3.723a.75.75 0 0 0 .219-.53V2.929a.75.75 0 0 0-1.5 0V5.36l-.31-.31A7 7 0 0 0 3.239 8.188a.75.75 0 1 0 1.448.389A5.5 5.5 0 0 1 13.89 6.11l.311.31h-2.432a.75.75 0 0 0 0 1.5h4.243a.75.75 0 0 0 .53-.219Z"
+              clipRule="evenodd"
+            />
+          </svg>
+          {t.actions.tryAgain}
+        </button>
+      )}
+    </div>
+  );
 }
 
 function UserBubble({ content }: { content: string }) {
@@ -75,6 +112,7 @@ export default function ChatThread({
   streaming,
   error,
   onSuggestionSelect,
+  onRetry,
 }: ChatThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -142,11 +180,7 @@ export default function ChatThread({
           <TypingIndicator />
         ))}
 
-      {error && (
-        <div className="rounded-lg border border-accent-rose/30 bg-accent-rose/10 p-3">
-          <p className="text-sm font-semibold text-accent-rose">{error}</p>
-        </div>
-      )}
+      {error && <ErrorBubble message={error} onRetry={onRetry} />}
 
       <div ref={bottomRef} />
     </div>

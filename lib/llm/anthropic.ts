@@ -77,6 +77,7 @@ export function createAnthropicProvider(
         response = await client.messages.create({
           model,
           max_tokens: 1024,
+          temperature: 0.3,
           system: systemPrompt,
           messages: [{ role: "user", content: input }],
           tools: [
@@ -129,6 +130,7 @@ export function createAnthropicProvider(
         const stream = client.messages.stream({
           model,
           max_tokens: 1024,
+          temperature: 0.3,
           system: cachedSystemPrompt(systemPrompt, options),
           messages: [{ role: "user", content: input }],
           tools: [
@@ -184,6 +186,7 @@ export function createAnthropicProvider(
         const stream = client.messages.stream({
           model,
           max_tokens: 1024,
+          temperature: 0.3,
           system: cachedSystemPrompt(systemPrompt, options),
           messages: messages.map((m) => ({ role: m.role, content: m.content })),
         });

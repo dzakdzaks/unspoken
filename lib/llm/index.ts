@@ -22,7 +22,7 @@ export const CHEAP_MODEL_DEFAULTS: Record<string, string> = {
   openai: "gpt-4o-mini",
   anthropic: "claude-haiku-4-5",
   gemini: "gemini-2.5-flash",
-  groq: "openai/gpt-oss-120b",
+  groq: "openai/gpt-oss-20b",
 };
 
 export interface LLMConfig {
@@ -37,7 +37,11 @@ interface ResolvedLLM {
   provider: LLMProvider;
 }
 
-function buildProvider(providerName: string, model: string, apiKey?: string): LLMProvider {
+function buildProvider(
+  providerName: string,
+  model: string,
+  apiKey?: string,
+): LLMProvider {
   switch (providerName) {
     case "openai":
       return createOpenAIProvider(model, apiKey);
@@ -50,7 +54,7 @@ function buildProvider(providerName: string, model: string, apiKey?: string): LL
     default:
       throw new LLMError(
         "UNKNOWN_PROVIDER",
-        `Unknown LLM provider: "${providerName}". Supported values: openai, anthropic, gemini, groq.`
+        `Unknown LLM provider: "${providerName}". Supported values: openai, anthropic, gemini, groq.`,
       );
   }
 }
@@ -69,14 +73,27 @@ function envModelFor(providerName: string): string | undefined {
 }
 
 function envCheapModelFor(providerName: string): string | undefined {
-  return providerName === envProvider() ? process.env.LLM_CHEAP_MODEL : undefined;
+  return providerName === envProvider()
+    ? process.env.LLM_CHEAP_MODEL
+    : undefined;
 }
 
 function resolveLLM(config?: LLMConfig): ResolvedLLM {
-  const providerName = (config?.provider || process.env.LLM_PROVIDER || "openai").toLowerCase();
-  const model = config?.model || envModelFor(providerName) || PROVIDER_DEFAULTS[providerName];
+  const providerName = (
+    config?.provider ||
+    process.env.LLM_PROVIDER ||
+    "openai"
+  ).toLowerCase();
+  const model =
+    config?.model ||
+    envModelFor(providerName) ||
+    PROVIDER_DEFAULTS[providerName];
   const apiKey = config?.apiKey || undefined;
-  return { providerName, model, provider: buildProvider(providerName, model, apiKey) };
+  return {
+    providerName,
+    model,
+    provider: buildProvider(providerName, model, apiKey),
+  };
 }
 
 function toLangfuseUsageDetails(usage: TokenUsage) {
@@ -88,13 +105,21 @@ function toLangfuseUsageDetails(usage: TokenUsage) {
 }
 
 function resolveCheapLLM(config?: LLMConfig): ResolvedLLM {
-  const providerName = (config?.provider || process.env.LLM_PROVIDER || "openai").toLowerCase();
+  const providerName = (
+    config?.provider ||
+    process.env.LLM_PROVIDER ||
+    "openai"
+  ).toLowerCase();
   const model =
     envCheapModelFor(providerName) ||
     CHEAP_MODEL_DEFAULTS[providerName] ||
     PROVIDER_DEFAULTS[providerName];
   const apiKey = config?.apiKey || undefined;
-  return { providerName, model, provider: buildProvider(providerName, model, apiKey) };
+  return {
+    providerName,
+    model,
+    provider: buildProvider(providerName, model, apiKey),
+  };
 }
 
 export function getProvider(): LLMProvider {
@@ -104,8 +129,15 @@ export function getProvider(): LLMProvider {
 }
 
 export function getProviderWithConfig(config: LLMConfig): LLMProvider {
-  const providerName = (config.provider || process.env.LLM_PROVIDER || "openai").toLowerCase();
-  const model = config.model || envModelFor(providerName) || PROVIDER_DEFAULTS[providerName];
+  const providerName = (
+    config.provider ||
+    process.env.LLM_PROVIDER ||
+    "openai"
+  ).toLowerCase();
+  const model =
+    config.model ||
+    envModelFor(providerName) ||
+    PROVIDER_DEFAULTS[providerName];
   const apiKey = config.apiKey || undefined;
   return buildProvider(providerName, model, apiKey);
 }
@@ -114,18 +146,27 @@ export async function* translateStream(
   input: string,
   systemPrompt: string,
   config?: LLMConfig,
-  options?: LLMRequestOptions
+  options?: LLMRequestOptions,
 ): AsyncGenerator<string, TokenUsage | undefined> {
   const { model, provider } = resolveLLM(config);
 
-  const gen = startObservation("decode", {
-    model,
-    modelParameters: { temperature: 0.4 },
-    input: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: input },
-    ],
-  }, { asType: "generation" });
+  const gen = startObservation(
+    "decode",
+    {
+      model,
+        modelParameters: {
+          temperature: 0.3,
+          ...(options?.reasoningEffort && {
+            reasoningEffort: options.reasoningEffort,
+          }),
+        },
+      input: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: input },
+      ],
+    },
+    { asType: "generation" },
+  );
 
   let output = "";
   try {
@@ -137,10 +178,12 @@ export async function* translateStream(
       r = await it.next();
     }
     const usage = r.value;
-    gen.update({
-      output,
-      ...(usage && { usageDetails: toLangfuseUsageDetails(usage) }),
-    }).end();
+    gen
+      .update({
+        output,
+        ...(usage && { usageDetails: toLangfuseUsageDetails(usage) }),
+      })
+      .end();
     return usage;
   } catch (err) {
     gen.update({ output, level: "ERROR" }).end();
@@ -152,15 +195,24 @@ export async function* chatStream(
   messages: ChatMessage[],
   systemPrompt: string,
   config?: LLMConfig,
-  options?: LLMRequestOptions
+  options?: LLMRequestOptions,
 ): AsyncGenerator<string, TokenUsage | undefined> {
   const { model, provider } = resolveLLM(config);
 
-  const gen = startObservation("chat", {
-    model,
-    modelParameters: { temperature: 0.6 },
-    input: [{ role: "system", content: systemPrompt }, ...messages],
-  }, { asType: "generation" });
+  const gen = startObservation(
+    "chat",
+    {
+      model,
+        modelParameters: {
+          temperature: 0.3,
+          ...(options?.reasoningEffort && {
+            reasoningEffort: options.reasoningEffort,
+          }),
+        },
+      input: [{ role: "system", content: systemPrompt }, ...messages],
+    },
+    { asType: "generation" },
+  );
 
   let output = "";
   try {
@@ -172,10 +224,12 @@ export async function* chatStream(
       r = await it.next();
     }
     const usage = r.value;
-    gen.update({
-      output,
-      ...(usage && { usageDetails: toLangfuseUsageDetails(usage) }),
-    }).end();
+    gen
+      .update({
+        output,
+        ...(usage && { usageDetails: toLangfuseUsageDetails(usage) }),
+      })
+      .end();
     return usage;
   } catch (err) {
     gen.update({ output, level: "ERROR" }).end();
@@ -187,10 +241,15 @@ async function completeText(
   messages: ChatMessage[],
   systemPrompt: string,
   config?: LLMConfig,
-  options?: LLMRequestOptions
+  options?: LLMRequestOptions,
 ): Promise<string> {
   let accumulated = "";
-  for await (const chunk of chatStream(messages, systemPrompt, config, options)) {
+  for await (const chunk of chatStream(
+    messages,
+    systemPrompt,
+    config,
+    options,
+  )) {
     accumulated += chunk;
   }
   return accumulated.trim();
@@ -221,25 +280,31 @@ export async function generateSuggestions(
   transcript: string,
   systemPrompt: string,
   config?: LLMConfig,
-  options?: LLMRequestOptions
+  options?: LLMRequestOptions,
 ): Promise<string[]> {
+  let gen: ReturnType<typeof startObservation> | undefined;
+  let accumulated = "";
+
   try {
     const { model, provider } = resolveCheapLLM(config);
 
-    const gen = startObservation("suggestions", {
-      model,
-      modelParameters: { temperature: 0.6 },
-      input: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: transcript },
-      ],
-    }, { asType: "generation" });
+    gen = startObservation(
+      "suggestions",
+      {
+        model,
+        modelParameters: { temperature: 0.3, reasoningEffort: "low" },
+        input: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: transcript },
+        ],
+      },
+      { asType: "generation" },
+    );
 
-    let accumulated = "";
     const it = provider.chatStream(
       [{ role: "user", content: transcript }],
       systemPrompt,
-      options
+      { ...options, reasoningEffort: "low" },
     );
     let r = await it.next();
     while (!r.done) {
@@ -247,13 +312,26 @@ export async function generateSuggestions(
       r = await it.next();
     }
     const usage = r.value;
-    gen.update({
-      output: accumulated,
-      ...(usage && { usageDetails: toLangfuseUsageDetails(usage) }),
-    }).end();
+    gen
+      .update({
+        output: accumulated,
+        ...(usage && { usageDetails: toLangfuseUsageDetails(usage) }),
+      })
+      .end();
 
     return parseSuggestions(accumulated);
-  } catch {
+  } catch (err) {
+    // Best-effort feature: never throw. But surface the cause so the failure is
+    // visible in logs, and end the observation so it isn't left dangling — a
+    // dangling generation is exactly what renders as `output: undefined`.
+    console.error("[generateSuggestions] failed:", err);
+    gen
+      ?.update({
+        output: accumulated,
+        level: "ERROR",
+        statusMessage: err instanceof Error ? err.message : String(err),
+      })
+      .end();
     return [];
   }
 }
@@ -267,7 +345,7 @@ export async function updateConversationSummary(
   newMessagesText: string,
   systemPrompt: string,
   config?: LLMConfig,
-  options?: LLMRequestOptions
+  options?: LLMRequestOptions,
 ): Promise<string> {
   if (!newMessagesText.trim()) {
     return existingSummary?.trim() ?? "";
@@ -289,7 +367,7 @@ export async function updateConversationSummary(
       [{ role: "user", content: userContent }],
       systemPrompt,
       cheapConfig,
-      options
+      { ...options, reasoningEffort: "low" },
     );
 
     return summary || existingSummary?.trim() || "";
@@ -299,5 +377,10 @@ export async function updateConversationSummary(
 }
 
 export { LLMError } from "./types";
-export type { LLMProvider, ChatMessage, TokenUsage, LLMRequestOptions } from "./types";
+export type {
+  LLMProvider,
+  ChatMessage,
+  TokenUsage,
+  LLMRequestOptions,
+} from "./types";
 export { promptCacheKey } from "./cache";
