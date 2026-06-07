@@ -87,6 +87,9 @@ export const translations = {
     },
     settings: {
       title: "AI Settings",
+      menuTitle: "Settings",
+      account: "Account",
+      language: "Language",
       provider: "Provider",
       model: "Model",
       apiKey: "API Key",
@@ -236,6 +239,9 @@ export const translations = {
     },
     settings: {
       title: "Pengaturan AI",
+      menuTitle: "Pengaturan",
+      account: "Akun",
+      language: "Bahasa",
       provider: "Provider",
       model: "Model",
       apiKey: "API Key",

@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useI18n } from "@/lib/i18n/context";
+import { useAuth } from "@/lib/auth/context";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 export type LLMProvider = "openai" | "anthropic" | "gemini";
 
@@ -74,6 +76,7 @@ export default function SettingsPanel({
   onSettingsChange,
 }: SettingsPanelProps) {
   const { t } = useI18n();
+  const { user, signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [settings, setSettings] = useState<LLMSettings>(DEFAULT_SETTINGS);
   const [showKey, setShowKey] = useState(false);
@@ -161,6 +164,48 @@ export default function SettingsPanel({
 
       {isOpen && (
         <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-lg border border-hairline bg-surface-card p-4 shadow-2xl shadow-black/60">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted">
+            {t.settings.menuTitle}
+          </p>
+
+          {/* Account */}
+          {user && (
+            <div className="mb-3">
+              <p className="mb-1.5 text-xs font-medium text-muted">
+                {t.settings.account}
+              </p>
+              <div className="flex items-center gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-body-strong">
+                    {user.name}
+                  </p>
+                  <p className="truncate text-xs text-muted-soft">
+                    {user.email}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={signOut}
+                  className="shrink-0 rounded-md border border-hairline-strong px-2.5 py-1.5 text-xs text-muted transition-colors hover:text-body-strong"
+                >
+                  {t.auth.signOut}
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="my-3 border-t border-hairline" />
+
+          {/* Language */}
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <span className="text-xs font-medium text-muted">
+              {t.settings.language}
+            </span>
+            <LanguageSwitcher />
+          </div>
+
+          <div className="my-3 border-t border-hairline" />
+
           <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted">
             {t.settings.title}
           </p>

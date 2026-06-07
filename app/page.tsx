@@ -11,7 +11,6 @@ import {
   fetchMessages,
   streamMessage,
 } from "@/lib/chat/client";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
 import SettingsPanel, {
   type LLMSettings,
   DEFAULT_SETTINGS,
@@ -39,7 +38,7 @@ const EMPTY_ROOM_STATE: RoomState = { messages: [], streaming: null, error: null
 
 export default function Home() {
   const { t, locale } = useI18n();
-  const { user, loading, signOut } = useAuth();
+  const { user, loading } = useAuth();
 
   const [rooms, setRooms] = useState<Room[]>([]);
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
@@ -304,19 +303,7 @@ export default function Home() {
             Unspoken<span className="text-primary">AI</span>
           </h1>
 
-          {/* User name + sign out */}
-          <span className="hidden truncate text-sm text-muted sm:block max-w-[140px]">
-            {user.name}
-          </span>
-          <button
-            onClick={signOut}
-            className="rounded-md border border-hairline-strong px-2.5 py-1.5 text-xs text-muted hover:text-body-strong transition-colors"
-          >
-            {t.auth.signOut}
-          </button>
-
           <SettingsPanel onSettingsChange={handleSettingsChange} />
-          <LanguageSwitcher />
         </header>
 
         <div className="flex-1 overflow-y-auto">
