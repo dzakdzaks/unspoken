@@ -1,0 +1,89 @@
+import { z } from "zod";
+
+export const TranslationResultSchema = z.object({
+  raw_input: z
+    .string()
+    .describe("The original phrase or behavior described by the user."),
+  translation: z
+    .string()
+    .describe(
+      "What the partner actually means or wants, expressed in plain, direct English."
+    ),
+  underlying_need: z
+    .string()
+    .describe(
+      "The core emotional driver behind the communication — e.g. Quality Time, Reassurance, Validation, Space, Assistance."
+    ),
+  urgency_level: z
+    .number()
+    .int()
+    .min(1)
+    .max(5)
+    .describe(
+      "Sensitivity rating from 1 (low, handle calmly) to 5 (critical, act immediately). Integer only."
+    ),
+  action_plan: z
+    .array(z.string())
+    .min(2)
+    .max(3)
+    .describe(
+      "2–3 specific, immediately actionable steps the user should take right now."
+    ),
+  follow_ups: z
+    .array(z.string())
+    .min(2)
+    .max(3)
+    .describe(
+      "2–3 short follow-up messages the user might want to send next, written in first person as if the user is typing them. Each under ~8 words."
+    ),
+});
+
+export type TranslationResult = z.infer<typeof TranslationResultSchema>;
+
+export const TranslateRequestSchema = z.object({
+  input: z
+    .string()
+    .min(1, "Please describe what she said or did.")
+    .max(500, "Input must be 500 characters or fewer."),
+  lang: z.enum(["en", "id"]).optional().default("en"),
+  provider: z.enum(["openai", "anthropic", "gemini"]).optional(),
+  model: z.string().max(100).optional(),
+  apiKey: z.string().max(200).optional(),
+});
+
+export type TranslateRequest = z.infer<typeof TranslateRequestSchema>;
+
+export const CreateRoomRequestSchema = z.object({
+  title: z.string().max(80).optional(),
+  lang: z.enum(["en", "id"]).optional().default("en"),
+});
+
+export const RenameRoomRequestSchema = z.object({
+  title: z.string().min(1).max(80),
+});
+
+export const SignUpRequestSchema = z.object({
+  name: z.string().min(1).max(60),
+  email: z.string().email(),
+  password: z.string().min(8).max(200),
+});
+
+export type SignUpRequest = z.infer<typeof SignUpRequestSchema>;
+
+export const SignInRequestSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1).max(200),
+});
+
+export type SignInRequest = z.infer<typeof SignInRequestSchema>;
+
+export const SendMessageRequestSchema = z.object({
+  input: z
+    .string()
+    .min(1, "Please type a message.")
+    .max(500, "Message must be 500 characters or fewer."),
+  lang: z.enum(["en", "id"]).optional().default("en"),
+  provider: z.enum(["openai", "anthropic", "gemini"]).optional(),
+  model: z.string().max(100).optional(),
+  apiKey: z.string().max(200).optional(),
+});
