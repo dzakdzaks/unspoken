@@ -12,7 +12,15 @@ export const TranslationResultSchema = z.object({
   underlying_need: z
     .string()
     .describe(
-      "The core emotional driver behind the communication — e.g. Quality Time, Reassurance, Validation, Space, Assistance."
+      "The single core emotional need driving this, named freely in a few words. Decide the wording yourself based on the situation — do not pick from a fixed list."
+    ),
+  underlying_need_hue: z
+    .number()
+    .int()
+    .min(0)
+    .max(360)
+    .describe(
+      "A color hue (0-360 on the HSL color wheel) you choose to represent the underlying_need's emotional tone. Pick whatever feels right: e.g. warm reds/oranges (0-40) for anger or urgency, yellows/greens (50-150) for warmth or growth, teals/blues (160-260) for calm, space, or security, purples/pinks (270-340) for affection or intimacy."
     ),
   urgency_level: z
     .number()
@@ -20,21 +28,31 @@ export const TranslationResultSchema = z.object({
     .min(1)
     .max(5)
     .describe(
-      "Sensitivity rating from 1 (low, handle calmly) to 5 (critical, act immediately). Integer only."
+      "Your own read of how urgent this is, from 1 (calm, no real tension) to 5 (critical, act immediately). Judge it yourself — there is no fixed rubric. Integer only."
+    ),
+  urgency_label: z
+    .string()
+    .describe(
+      "A short label (a few words) you write in your own words to capture how serious this is and what posture to take. Vary it to the situation — do not pick from a fixed list."
+    ),
+  urgency_summary: z
+    .string()
+    .describe(
+      "One plain, direct sentence explaining why you rated the urgency this way and what it means for the user. Specific to this situation, not a canned line."
     ),
   action_plan: z
     .array(z.string())
-    .min(2)
+    .min(3)
     .max(3)
     .describe(
-      "2–3 specific, immediately actionable steps the user should take right now."
+      "Exactly 3 specific, immediately actionable steps the user should take right now."
     ),
   follow_ups: z
     .array(z.string())
-    .min(2)
+    .min(3)
     .max(3)
     .describe(
-      "2–3 short follow-up messages the user might want to send next, written in first person as if the user is typing them. Each under ~8 words."
+      "Exactly 3 short follow-up messages the user might want to send next, written in first person as if the user is typing them. Each under ~8 words."
     ),
 });
 

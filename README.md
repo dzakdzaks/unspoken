@@ -235,11 +235,15 @@ components/
 
 ```json
 {
-  "raw_input":       "string",
-  "translation":     "string",
-  "underlying_need": "string",
-  "urgency_level":   1-5,
-  "action_plan":     ["string", "string", "string"]
+  "raw_input":           "string",
+  "translation":         "string",
+  "underlying_need":     "string",
+  "underlying_need_hue": 0-360,
+  "urgency_level":       1-5,
+  "urgency_label":       "string",
+  "urgency_summary":     "string",
+  "action_plan":         ["string", "string", "string"],
+  "follow_ups":          ["string", "string", "string"]
 }
 ```
 

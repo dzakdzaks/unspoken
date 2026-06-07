@@ -87,7 +87,22 @@ export default function StreamingResults({ partial }: StreamingResultsProps) {
             {t.results.underlyingNeed}
           </p>
           {hasNeed ? (
-            <span className="inline-block rounded-md border border-hairline-strong bg-surface-card px-3 py-1.5 text-sm font-semibold text-body-strong">
+            <span
+              className="inline-block rounded-md border px-3 py-1.5 text-sm font-semibold"
+              style={
+                partial.underlying_need_hue !== undefined
+                  ? {
+                      color: `hsl(${partial.underlying_need_hue} 75% 75%)`,
+                      backgroundColor: `hsl(${partial.underlying_need_hue} 70% 55% / 0.12)`,
+                      borderColor: `hsl(${partial.underlying_need_hue} 70% 55% / 0.35)`,
+                    }
+                  : {
+                      borderColor: "rgb(58 58 58)",
+                      backgroundColor: "#1a1a1a",
+                      color: "#e6e6e6",
+                    }
+              }
+            >
               {partial.underlying_need}
             </span>
           ) : (
@@ -97,7 +112,11 @@ export default function StreamingResults({ partial }: StreamingResultsProps) {
 
         {/* Urgency */}
         {hasUrgency ? (
-          <UrgencyMeter level={partial.urgency_level!} />
+          <UrgencyMeter
+            level={partial.urgency_level!}
+            label={partial.urgency_label}
+            desc={partial.urgency_summary}
+          />
         ) : (
           <div className="rounded-lg border border-hairline-strong/50 bg-surface-elevated/60 p-5">
             <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted">

@@ -3,7 +3,10 @@ export type PartialResult = {
   translation?: string;
   translationPartial?: string;
   underlying_need?: string;
+  underlying_need_hue?: number;
   urgency_level?: number;
+  urgency_label?: string;
+  urgency_summary?: string;
   action_plan?: string[];
 };
 
@@ -44,8 +47,14 @@ export function parsePartialTranslation(rawText: string): PartialResult {
 
   result.underlying_need = extractCompleteString(rawText, 'underlying_need');
 
+  const hueMatch = rawText.match(/"underlying_need_hue"\s*:\s*(\d{1,3})/);
+  if (hueMatch) result.underlying_need_hue = parseInt(hueMatch[1], 10);
+
   const urgencyMatch = rawText.match(/"urgency_level"\s*:\s*(\d)/);
   if (urgencyMatch) result.urgency_level = parseInt(urgencyMatch[1], 10);
+
+  result.urgency_label = extractCompleteString(rawText, 'urgency_label');
+  result.urgency_summary = extractCompleteString(rawText, 'urgency_summary');
 
   // Try the complete closed array first, then fall back to an unclosed one
   // so action plan items appear incrementally during streaming.

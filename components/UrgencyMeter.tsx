@@ -2,6 +2,8 @@ import { useI18n } from "@/lib/i18n/context";
 
 interface UrgencyMeterProps {
   level: number;
+  label?: string;
+  desc?: string;
 }
 
 const LEVEL_STYLE: Record<
@@ -35,11 +37,15 @@ const LEVEL_STYLE: Record<
   },
 };
 
-export default function UrgencyMeter({ level }: UrgencyMeterProps) {
+export default function UrgencyMeter({ level, label, desc }: UrgencyMeterProps) {
   const { t } = useI18n();
   const safe = Math.min(5, Math.max(1, Math.round(level))) as 1 | 2 | 3 | 4 | 5;
   const style = LEVEL_STYLE[safe];
-  const urgency = t.urgency[safe];
+  const fallback = t.urgency[safe];
+  const urgency = {
+    label: label?.trim() || fallback.label,
+    desc: desc?.trim() || fallback.desc,
+  };
 
   return (
     <div className={`rounded-lg border p-5 ${style.bg}`}>

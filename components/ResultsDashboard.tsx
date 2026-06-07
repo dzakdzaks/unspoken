@@ -54,8 +54,15 @@ export default function ResultsDashboard({
       <LiteralTranslation text={result.translation} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <UnderlyingNeedBadge need={result.underlying_need} />
-        <UrgencyMeter level={result.urgency_level} />
+        <UnderlyingNeedBadge
+          need={result.underlying_need}
+          hue={result.underlying_need_hue}
+        />
+        <UrgencyMeter
+          level={result.urgency_level}
+          label={result.urgency_label}
+          desc={result.urgency_summary}
+        />
       </div>
 
       <ActionPlan steps={result.action_plan} />
