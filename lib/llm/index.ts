@@ -50,9 +50,26 @@ function buildProvider(providerName: string, model: string, apiKey?: string): LL
   }
 }
 
+function envProvider(): string {
+  return (process.env.LLM_PROVIDER || "openai").toLowerCase();
+}
+
+/**
+ * Env model overrides (LLM_MODEL / LLM_CHEAP_MODEL) are tied to the env-configured
+ * provider. When a request overrides the provider, those model names belong to a
+ * different provider and must be ignored in favor of provider-specific defaults.
+ */
+function envModelFor(providerName: string): string | undefined {
+  return providerName === envProvider() ? process.env.LLM_MODEL : undefined;
+}
+
+function envCheapModelFor(providerName: string): string | undefined {
+  return providerName === envProvider() ? process.env.LLM_CHEAP_MODEL : undefined;
+}
+
 function resolveLLM(config?: LLMConfig): ResolvedLLM {
   const providerName = (config?.provider || process.env.LLM_PROVIDER || "openai").toLowerCase();
-  const model = config?.model || process.env.LLM_MODEL || PROVIDER_DEFAULTS[providerName];
+  const model = config?.model || envModelFor(providerName) || PROVIDER_DEFAULTS[providerName];
   const apiKey = config?.apiKey || undefined;
   return { providerName, model, provider: buildProvider(providerName, model, apiKey) };
 }
@@ -68,7 +85,7 @@ function toLangfuseUsageDetails(usage: TokenUsage) {
 function resolveCheapLLM(config?: LLMConfig): ResolvedLLM {
   const providerName = (config?.provider || process.env.LLM_PROVIDER || "openai").toLowerCase();
   const model =
-    process.env.LLM_CHEAP_MODEL ||
+    envCheapModelFor(providerName) ||
     CHEAP_MODEL_DEFAULTS[providerName] ||
     PROVIDER_DEFAULTS[providerName];
   const apiKey = config?.apiKey || undefined;
@@ -83,7 +100,7 @@ export function getProvider(): LLMProvider {
 
 export function getProviderWithConfig(config: LLMConfig): LLMProvider {
   const providerName = (config.provider || process.env.LLM_PROVIDER || "openai").toLowerCase();
-  const model = config.model || process.env.LLM_MODEL || PROVIDER_DEFAULTS[providerName];
+  const model = config.model || envModelFor(providerName) || PROVIDER_DEFAULTS[providerName];
   const apiKey = config.apiKey || undefined;
   return buildProvider(providerName, model, apiKey);
 }
@@ -99,7 +116,10 @@ export async function* translateStream(
   const gen = startObservation("decode", {
     model,
     modelParameters: { temperature: 0.4 },
-    input: [{ role: "user", content: input }],
+    input: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: input },
+    ],
   }, { asType: "generation" });
 
   let output = "";
@@ -134,7 +154,7 @@ export async function* chatStream(
   const gen = startObservation("chat", {
     model,
     modelParameters: { temperature: 0.6 },
-    input: messages,
+    input: [{ role: "system", content: systemPrompt }, ...messages],
   }, { asType: "generation" });
 
   let output = "";
@@ -204,7 +224,10 @@ export async function generateSuggestions(
     const gen = startObservation("suggestions", {
       model,
       modelParameters: { temperature: 0.6 },
-      input: [{ role: "user", content: transcript }],
+      input: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: transcript },
+      ],
     }, { asType: "generation" });
 
     let accumulated = "";

@@ -119,16 +119,8 @@ export const translations = {
       loadError: "Couldn't load this chat. Try again.",
     },
     suggestions: {
-      heading: "Try asking",
+      heading: "Suggested replies",
       quickActions: {
-        writeText: {
-          label: "Write me a text to send",
-          prompt: "Write me a text message I can send her about this.",
-        },
-        makePlan: {
-          label: "Break it into steps",
-          prompt: "Give me a clear step-by-step plan for how to handle this.",
-        },
         copy: "Copy summary",
       },
     },
@@ -271,16 +263,8 @@ export const translations = {
       loadError: "Gagal memuat obrolan ini. Coba lagi.",
     },
     suggestions: {
-      heading: "Coba tanya",
+      heading: "Saran balasan",
       quickActions: {
-        writeText: {
-          label: "Bikinin chat buat dikirim",
-          prompt: "Bikinin aku contoh chat yang bisa aku kirim ke dia soal ini.",
-        },
-        makePlan: {
-          label: "Pecah jadi langkah",
-          prompt: "Kasih aku rencana langkah demi langkah buat ngatasin ini.",
-        },
         copy: "Salin ringkasan",
       },
     },

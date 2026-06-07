@@ -29,7 +29,7 @@ export default function SuggestionChips({
             type="button"
             onClick={() => onSelect(s)}
             disabled={disabled}
-            className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-left text-xs font-medium text-primary transition-colors hover:border-primary/70 hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 rounded-md border border-hairline-strong bg-surface-elevated/60 px-3 py-2 text-left text-xs font-semibold text-body transition-colors hover:border-muted-soft hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
           >
             {s}
           </button>

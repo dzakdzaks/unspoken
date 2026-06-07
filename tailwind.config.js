@@ -1,3 +1,5 @@
+const plugin = require("tailwindcss/plugin");
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -68,5 +70,11 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    plugin(function ({ addVariant }) {
+      // Targets devices that genuinely support hovering (mouse/trackpad),
+      // independent of viewport width — unlike a breakpoint check.
+      addVariant("hover-device", "@media (hover: hover) and (pointer: fine)");
+    }),
+  ],
 };

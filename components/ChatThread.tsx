@@ -6,6 +6,7 @@ import { parsePartialTranslation } from "@/lib/partialParse";
 import ResultsDashboard from "./ResultsDashboard";
 import StreamingResults from "./StreamingResults";
 import Markdown from "./Markdown";
+import CopyButton from "./CopyButton";
 import SuggestionChips from "./SuggestionChips";
 import DecodeQuickActions from "./DecodeQuickActions";
 
@@ -23,9 +24,12 @@ interface ChatThreadProps {
 
 function UserBubble({ content }: { content: string }) {
   return (
-    <div className="flex justify-end">
-      <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-lg rounded-br-sm bg-primary px-4 py-2.5 text-sm font-medium leading-relaxed text-on-primary">
+    <div className="group flex flex-col items-end">
+      <div className="mt-7 max-w-[85%] whitespace-pre-wrap break-words rounded-lg rounded-br-sm bg-primary px-4 py-2.5 text-sm font-medium leading-relaxed text-on-primary">
         {content}
+      </div>
+      <div className="mt-1 flex justify-end opacity-100 transition-opacity focus-within:opacity-100 hover-device:opacity-0 hover-device:group-hover:opacity-100">
+        <CopyButton value={content} />
       </div>
     </div>
   );
@@ -51,11 +55,15 @@ function AssistantBubble({
   streaming?: boolean;
 }) {
   return (
-    <div className="flex justify-start">
+    <div className="group flex justify-start">
       <div className="max-w-[85%] break-words rounded-lg rounded-bl-sm border border-hairline-strong/50 bg-surface-elevated/60 px-4 py-2.5">
         <Markdown content={content} />
-        {streaming && (
+        {streaming ? (
           <span className="-mt-1 inline-block h-[1.1em] w-0.5 animate-blink bg-primary align-middle" />
+        ) : (
+          <div className="mt-1.5 flex justify-end border-t border-hairline/60 pt-1.5 opacity-100 transition-opacity focus-within:opacity-100 hover-device:opacity-0 hover-device:group-hover:opacity-100">
+            <CopyButton value={content} />
+          </div>
         )}
       </div>
     </div>
@@ -108,6 +116,7 @@ export default function ChatThread({
               />
               {isLatest && (
                 <DecodeQuickActions
+                  suggestions={m.decoded.follow_ups}
                   onSelect={onSuggestionSelect}
                   disabled={!interactive}
                 />
