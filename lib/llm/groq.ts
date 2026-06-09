@@ -1,5 +1,4 @@
 import OpenAI from "openai";
-import { zodResponseFormat } from "openai/helpers/zod";
 import { TranslationResultSchema, type TranslationResult } from "@/lib/schema";
 import {
   LLMError,
@@ -32,6 +31,33 @@ const DEFAULT_REASONING = {
   reasoning_format: "parsed",
 } as Record<string, unknown>;
 
+function parseTranslationResult(raw: string | null): TranslationResult {
+  if (!raw) {
+    throw new LLMError(
+      "PARSE_ERROR",
+      "Groq returned an empty structured output."
+    );
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    throw new LLMError("PARSE_ERROR", "Groq response was not valid JSON.", err);
+  }
+
+  const result = TranslationResultSchema.safeParse(parsed);
+  if (!result.success) {
+    throw new LLMError(
+      "PARSE_ERROR",
+      "Groq response failed Zod validation.",
+      result.error
+    );
+  }
+
+  return result.data;
+}
+
 export function createGroqProvider(
   model = "openai/gpt-oss-120b",
   runtimeApiKey?: string
@@ -55,16 +81,13 @@ export function createGroqProvider(
 
       let completion;
       try {
-        completion = await client.chat.completions.parse({
+        completion = await client.chat.completions.create({
           model,
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: input },
           ],
-          response_format: zodResponseFormat(
-            TranslationResultSchema,
-            "translation_result"
-          ),
+          response_format: { type: "json_object" },
           temperature: TEMPERATURE,
           ...DEFAULT_REASONING,
         });
@@ -72,15 +95,7 @@ export function createGroqProvider(
         throw new LLMError("API_ERROR", "Groq API request failed.", err);
       }
 
-      const parsed = completion.choices[0]?.message?.parsed;
-      if (!parsed) {
-        throw new LLMError(
-          "PARSE_ERROR",
-          "Groq returned an empty or unparseable structured output."
-        );
-      }
-
-      return parsed;
+      return parseTranslationResult(completion.choices[0]?.message?.content ?? null);
     },
 
     async *translateStream(
@@ -98,10 +113,7 @@ export function createGroqProvider(
             { role: "system", content: systemPrompt },
             { role: "user", content: input },
           ],
-          response_format: zodResponseFormat(
-            TranslationResultSchema,
-            "translation_result"
-          ),
+          response_format: { type: "json_object" },
           temperature: TEMPERATURE,
           ...reasoningParams(options),
           stream: true,
