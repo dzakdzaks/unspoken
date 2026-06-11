@@ -176,6 +176,7 @@ export async function POST(
           metadata: {
             mode,
             lang: parsedLang,
+            category: room.category,
             provider: parsed.data.provider ?? "default",
           },
         },
@@ -190,9 +191,15 @@ export async function POST(
                 let accumulated = "";
                 for await (const chunk of translateStream(
                   input,
-                  getSystemPrompt(parsedLang),
+                  getSystemPrompt(parsedLang, room.category),
                   llmConfig,
-                  { promptCacheKey: promptCacheKey("decode", parsedLang) }
+                  {
+                    promptCacheKey: promptCacheKey(
+                      "decode",
+                      parsedLang,
+                      room.category
+                    ),
+                  }
                 )) {
                   accumulated += chunk;
                   send({ t: "chunk", v: chunk });
@@ -263,9 +270,15 @@ export async function POST(
                 let accumulated = "";
                 for await (const chunk of chatStream(
                   history,
-                  getChatSystemPrompt(parsedLang),
+                  getChatSystemPrompt(parsedLang, room.category),
                   llmConfig,
-                  { promptCacheKey: promptCacheKey("chat", parsedLang) }
+                  {
+                    promptCacheKey: promptCacheKey(
+                      "chat",
+                      parsedLang,
+                      room.category
+                    ),
+                  }
                 )) {
                   accumulated += chunk;
                   send({ t: "delta", v: chunk });

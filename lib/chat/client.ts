@@ -1,6 +1,7 @@
 import type { Locale } from "@/lib/i18n/translations";
 import type { Message, Room } from "./types";
 import type { PublicUser } from "@/lib/auth/users";
+import type { RelationshipCategory } from "@/lib/schema";
 
 function jsonHeaders(): HeadersInit {
   return { "Content-Type": "application/json" };
@@ -60,11 +61,15 @@ export async function fetchRooms(): Promise<Room[]> {
   return data.rooms;
 }
 
-export async function createRoom(title: string, lang: Locale): Promise<Room> {
+export async function createRoom(
+  title: string,
+  lang: Locale,
+  category: RelationshipCategory = "partner"
+): Promise<Room> {
   const res = await fetch("/api/rooms", {
     method: "POST",
     headers: jsonHeaders(),
-    body: JSON.stringify({ title, lang }),
+    body: JSON.stringify({ title, lang, category }),
   });
   if (!res.ok) throw new Error("Failed to create room.");
   return ((await res.json()) as { room: Room }).room;
@@ -97,6 +102,7 @@ export async function deleteMessage(
 export interface SendBody {
   input: string;
   lang: Locale;
+  category?: RelationshipCategory;
   provider?: string;
   model?: string;
   apiKey?: string;

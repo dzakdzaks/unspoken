@@ -39,7 +39,8 @@ export async function POST(req: NextRequest) {
     const room = await createRoom(
       userId,
       parsed.data.title ?? "New chat",
-      parsed.data.lang
+      parsed.data.lang,
+      parsed.data.category
     );
     return NextResponse.json({ room }, { status: 201 });
   } catch {

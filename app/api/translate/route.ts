@@ -67,8 +67,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 400 });
   }
 
-  const { input, lang: parsedLang, provider, model, apiKey } = parsed.data;
-  const systemPrompt = getSystemPrompt(parsedLang);
+  const { input, lang: parsedLang, category, provider, model, apiKey } = parsed.data;
+  const systemPrompt = getSystemPrompt(parsedLang, category);
   const llmConfig = { provider, model, apiKey };
 
   const encoder = new TextEncoder();
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
           input,
           systemPrompt,
           llmConfig,
-          { promptCacheKey: promptCacheKey("decode", parsedLang) }
+          { promptCacheKey: promptCacheKey("decode", parsedLang, category) }
         )) {
           accumulated += chunk;
           controller.enqueue(encoder.encode(sseChunk(chunk)));

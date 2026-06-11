@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { useAuth } from "@/lib/auth/context";
 import type { Message, Room } from "@/lib/chat/types";
+import type { RelationshipCategory } from "@/lib/schema";
 import {
   fetchRooms,
   createRoom,
@@ -39,6 +40,13 @@ interface RoomState {
 }
 
 const EMPTY_ROOM_STATE: RoomState = { messages: [], streaming: null, error: null };
+const RELATIONSHIP_CATEGORIES: RelationshipCategory[] = [
+  "partner",
+  "dating",
+  "family",
+  "friend",
+  "work",
+];
 
 export default function Home() {
   const { t, locale } = useI18n();
@@ -54,6 +62,8 @@ export default function Home() {
   const [nullError, setNullError] = useState<string | null>(null);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [relationshipCategory, setRelationshipCategory] =
+    useState<RelationshipCategory>("partner");
   const [llmSettings, setLLMSettings] = useState<LLMSettings>(DEFAULT_SETTINGS);
   const handleSettingsChange = useCallback((s: LLMSettings) => setLLMSettings(s), []);
 
@@ -143,7 +153,11 @@ export default function Home() {
 
     if (!roomId) {
       try {
-        const room = await createRoom(input.slice(0, 60), locale);
+        const room = await createRoom(
+          input.slice(0, 60),
+          locale,
+          relationshipCategory
+        );
         setRooms((prev) => [room, ...prev]);
         setActiveRoomId(room.id);
         loadedRooms.current.add(room.id);
@@ -186,6 +200,7 @@ export default function Home() {
     const body = {
       input,
       lang: locale,
+      ...(willDecode ? { category: relationshipCategory } : {}),
       ...(llmSettings.provider ? { provider: llmSettings.provider } : {}),
       ...(llmSettings.model ? { model: llmSettings.model } : {}),
       ...(llmSettings.apiKey ? { apiKey: llmSettings.apiKey } : {}),
@@ -368,6 +383,30 @@ export default function Home() {
               <p className="mt-2 max-w-sm text-sm text-muted">
                 {t.chat.emptySubtitle}
               </p>
+              <div className="mt-5 w-full max-w-sm">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-soft">
+                  {t.categories.title}
+                </p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {RELATIONSHIP_CATEGORIES.map((category) => {
+                    const active = category === relationshipCategory;
+                    return (
+                      <button
+                        key={category}
+                        type="button"
+                        onClick={() => setRelationshipCategory(category)}
+                        className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                          active
+                            ? "border-primary bg-primary text-on-primary"
+                            : "border-hairline-strong bg-surface-elevated/60 text-muted hover:border-muted-soft hover:text-body"
+                        }`}
+                      >
+                        {t.categories.options[category]}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
               <div className="mt-5 flex flex-wrap justify-center gap-2">
                 {t.input.examples.map((ex) => (
                   <button
