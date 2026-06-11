@@ -1,15 +1,5 @@
 import { z } from "zod";
 
-export const RelationshipCategorySchema = z.enum([
-  "partner",
-  "dating",
-  "family",
-  "friend",
-  "work",
-]);
-
-export type RelationshipCategory = z.infer<typeof RelationshipCategorySchema>;
-
 export const TranslationResultSchema = z.object({
   raw_input: z
     .string()
@@ -17,7 +7,7 @@ export const TranslationResultSchema = z.object({
   translation: z
     .string()
     .describe(
-      "What the other person actually means or wants, expressed in plain, direct English."
+      "What the partner actually means or wants, expressed in plain, direct English."
     ),
   underlying_need: z
     .string()
@@ -74,7 +64,6 @@ export const TranslateRequestSchema = z.object({
     .min(1, "Please describe what she said or did.")
     .max(500, "Input must be 500 characters or fewer."),
   lang: z.enum(["en", "id"]).optional().default("en"),
-  category: RelationshipCategorySchema.optional().default("partner"),
   provider: z.enum(["openai", "anthropic", "gemini", "groq"]).optional(),
   model: z.string().max(100).optional(),
   apiKey: z.string().max(200).optional(),
@@ -85,7 +74,6 @@ export type TranslateRequest = z.infer<typeof TranslateRequestSchema>;
 export const CreateRoomRequestSchema = z.object({
   title: z.string().max(80).optional(),
   lang: z.enum(["en", "id"]).optional().default("en"),
-  category: RelationshipCategorySchema.optional().default("partner"),
 });
 
 export const RenameRoomRequestSchema = z.object({
@@ -113,7 +101,6 @@ export const SendMessageRequestSchema = z.object({
     .min(1, "Please type a message.")
     .max(500, "Message must be 500 characters or fewer."),
   lang: z.enum(["en", "id"]).optional().default("en"),
-  category: RelationshipCategorySchema.optional(),
   provider: z.enum(["openai", "anthropic", "gemini", "groq"]).optional(),
   model: z.string().max(100).optional(),
   apiKey: z.string().max(200).optional(),

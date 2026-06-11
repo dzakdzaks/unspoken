@@ -1,4 +1,4 @@
-import type { RelationshipCategory, TranslationResult } from "@/lib/schema";
+import type { TranslationResult } from "@/lib/schema";
 import type { Locale } from "@/lib/i18n/translations";
 
 export type Role = "user" | "assistant";
@@ -8,7 +8,6 @@ export interface Room {
   id: string;
   title: string;
   lang: Locale;
-  category: RelationshipCategory;
   /** Rolling summary of messages outside the recent context window. */
   contextSummary?: string;
   /** Last message id included in `contextSummary`. */

@@ -1,6 +1,6 @@
 import { ObjectId, type Collection } from "mongodb";
 import { getDb } from "./mongo";
-import type { RelationshipCategory, TranslationResult } from "@/lib/schema";
+import type { TranslationResult } from "@/lib/schema";
 import type { Locale } from "@/lib/i18n/translations";
 import type { Message, Role, MessageKind, Room } from "@/lib/chat/types";
 
@@ -11,7 +11,6 @@ interface RoomDoc {
   userId: string;
   title: string;
   lang: Locale;
-  category?: RelationshipCategory;
   contextSummary?: string;
   summaryThroughMessageId?: string;
   createdAt: Date;
@@ -46,7 +45,6 @@ function serializeRoom(doc: RoomDoc): Room {
     id: doc._id.toHexString(),
     title: doc.title,
     lang: doc.lang,
-    category: doc.category ?? "partner",
     ...(doc.contextSummary ? { contextSummary: doc.contextSummary } : {}),
     ...(doc.summaryThroughMessageId
       ? { summaryThroughMessageId: doc.summaryThroughMessageId }
@@ -78,8 +76,7 @@ export async function listRooms(userId: string): Promise<Room[]> {
 export async function createRoom(
   userId: string,
   title: string,
-  lang: Locale,
-  category: RelationshipCategory = "partner"
+  lang: Locale
 ): Promise<Room> {
   const col = await rooms();
   const now = new Date();
@@ -88,7 +85,6 @@ export async function createRoom(
     userId,
     title: title.slice(0, 80) || "New chat",
     lang,
-    category,
     createdAt: now,
     updatedAt: now,
   };
