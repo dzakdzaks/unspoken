@@ -10,6 +10,7 @@ import Markdown from "./Markdown";
 import CopyButton from "./CopyButton";
 import SuggestionChips from "./SuggestionChips";
 import DecodeQuickActions from "./DecodeQuickActions";
+import CrisisHandoffCard from "./CrisisHandoffCard";
 
 export interface StreamingState {
   mode: "decode" | "text" | "clarify";
@@ -20,6 +21,7 @@ interface ChatThreadProps {
   messages: Message[];
   streaming: StreamingState | null;
   error: string | null;
+  newCrisisMessageId?: string | null;
   onSuggestionSelect: (text: string) => void;
   onSkipClarify?: () => void;
   onRetry?: () => void;
@@ -112,6 +114,7 @@ export default function ChatThread({
   messages,
   streaming,
   error,
+  newCrisisMessageId,
   onSuggestionSelect,
   onSkipClarify,
   onRetry,
@@ -127,7 +130,9 @@ export default function ChatThread({
   // reply, and only while nothing is currently streaming.
   let lastAssistantId: string | null = null;
   for (const m of messages) {
-    if (m.role === "assistant") lastAssistantId = m.id;
+    if (m.role === "assistant" && m.kind !== "crisis") {
+      lastAssistantId = m.id;
+    }
   }
   const interactive = streaming === null;
   const hasDecode = messages.some((m) => m.kind === "decode");
@@ -141,13 +146,23 @@ export default function ChatThread({
 
         const isLatest = m.id === lastAssistantId && interactive;
         const chips =
-          isLatest && m.kind !== "decode" && m.suggestions?.length ? (
+          isLatest && m.kind !== "decode" && m.kind !== "crisis" && m.suggestions?.length ? (
             <SuggestionChips
               suggestions={m.suggestions}
               onSelect={onSuggestionSelect}
               disabled={!interactive}
             />
           ) : null;
+
+        if (m.kind === "crisis") {
+          return (
+            <CrisisHandoffCard
+              key={m.id}
+              message={m}
+              isNew={m.id === newCrisisMessageId}
+            />
+          );
+        }
 
         if (m.kind === "decode" && m.decoded) {
           return (

@@ -71,6 +71,9 @@ export default function Home() {
   // Last attempted input, so a retry from the new-chat state (where no message
   // is persisted yet) can replay it.
   const lastInputRef = useRef<string>("");
+  const [newCrisisMessageId, setNewCrisisMessageId] = useState<string | null>(
+    null,
+  );
   // Tracks which rooms have had their messages fetched so we don't re-fetch on every switch
   const loadedRooms = useRef<Set<string>>(new Set());
 
@@ -195,6 +198,7 @@ export default function Home() {
       streaming: { mode: inPreDecode ? "clarify" : "text", raw: "" },
       error: null,
     }));
+    setNewCrisisMessageId(null);
 
     const body = {
       input,
@@ -206,6 +210,13 @@ export default function Home() {
 
     try {
       await streamMessage(targetRoomId, body, controller.signal, {
+        onCrisis: (message) => {
+          setNewCrisisMessageId(message.id);
+          setRoom(targetRoomId, (s) => ({
+            ...s,
+            messages: [...s.messages, message],
+          }));
+        },
         onMeta: (mode, userMessage) => {
           setRoom(targetRoomId, (s) => ({
             ...s,
@@ -237,6 +248,7 @@ export default function Home() {
             messages: [...s.messages, message],
             streaming: null,
           }));
+          setNewCrisisMessageId(null);
           abortRefs.current.delete(targetRoomId);
           setRooms((prev) => moveToFront(prev, targetRoomId));
         },
@@ -274,6 +286,7 @@ export default function Home() {
       streaming: { mode: "decode", raw: "" },
       error: null,
     }));
+    setNewCrisisMessageId(null);
 
     const body = {
       input: "",
@@ -286,6 +299,13 @@ export default function Home() {
 
     try {
       await streamMessage(roomId, body, controller.signal, {
+        onCrisis: (message) => {
+          setNewCrisisMessageId(message.id);
+          setRoom(roomId, (s) => ({
+            ...s,
+            messages: [...s.messages, message],
+          }));
+        },
         onMeta: (mode) => {
           setRoom(roomId, (s) => ({
             ...s,
@@ -314,6 +334,7 @@ export default function Home() {
             messages: [...s.messages, message],
             streaming: null,
           }));
+          setNewCrisisMessageId(null);
           abortRefs.current.delete(roomId);
           setRooms((prev) => moveToFront(prev, roomId));
         },
@@ -497,6 +518,7 @@ export default function Home() {
                 messages={messages}
                 streaming={streaming}
                 error={error}
+                newCrisisMessageId={newCrisisMessageId}
                 onSuggestionSelect={handleSend}
                 onSkipClarify={handleSkipClarify}
                 onRetry={handleRetry}

@@ -129,6 +129,22 @@ export const translations = {
         copy: "Copy summary",
       },
     },
+    crisis: {
+      eyebrow: "Your safety comes first",
+      lead: "What you shared sounds really serious. Unspoken helps with relationship communication — we're not an emergency or crisis service, and we can't keep you safe on our own.",
+      immediate:
+        "If you're in immediate danger, contact your local emergency number now (for example 911 in the US, or 112 in many countries).",
+      resourcesHeading: "Talk to someone trained to help",
+      resourceHint: "Free, confidential support — tap to call or visit their site.",
+      continueNote:
+        "You can keep chatting here if you want — but reaching out to one of these services is the safest next step when someone is hurting or threatening you.",
+      privacyNote:
+        "If you're worried someone might see your screen, use a private window or clear your history after visiting a link.",
+      visitWebsite: "Visit website",
+      callAction: (name: string) => `Call ${name}`,
+      openWebsiteAction: (name: string) =>
+        `Open ${name} website (opens in new tab)`,
+    },
     auth: {
       signInTitle: "Welcome back",
       signUpTitle: "Create your account",
@@ -277,6 +293,23 @@ export const translations = {
       quickActions: {
         copy: "Salin ringkasan",
       },
+    },
+    crisis: {
+      eyebrow: "Keselamatanmu yang utama",
+      lead: "Apa yang kamu ceritain terdengar sangat serius. Unspoken bantu kamu memahami komunikasi dalam hubungan — kami bukan layanan darurat atau krisis, dan kami nggak bisa menjaga keselamatanmu sendirian.",
+      immediate:
+        "Kalau kamu dalam bahaya sekarang juga, hubungi nomor darurat setempat (misalnya 112 di Indonesia).",
+      resourcesHeading: "Bicara dengan orang yang terlatih membantu",
+      resourceHint:
+        "Gratis dan rahasia — ketuk untuk telepon atau buka situsnya.",
+      continueNote:
+        "Kamu boleh lanjut obrolan di sini kalau mau — tapi menghubungi salah satu layanan di bawah adalah langkah paling aman kalau ada yang menyakiti atau mengancammu.",
+      privacyNote:
+        "Kalau khawatir ada yang lihat layar kamu, pakai jendela privat atau hapus riwayat setelah membuka tautan.",
+      visitWebsite: "Kunjungi situs",
+      callAction: (name: string) => `Telepon ${name}`,
+      openWebsiteAction: (name: string) =>
+        `Buka situs ${name} (buka di tab baru)`,
     },
     auth: {
       signInTitle: "Selamat datang kembali",

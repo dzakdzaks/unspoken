@@ -6,7 +6,8 @@ export type PromptCacheKind =
   | "suggest"
   | "summarize"
   | "clarify"
-  | "guardrail";
+  | "guardrail"
+  | "crisis";
 
 export function promptCacheKey(kind: PromptCacheKind, locale: Locale): string {
   return `unspoken-${kind}-${locale}`;

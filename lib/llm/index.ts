@@ -9,12 +9,15 @@ import {
 import {
   ClarifyDecisionSchema,
   GuardrailDecisionSchema,
+  CrisisDetectionSchema,
   type ClarifyDecision,
+  type CrisisDetection,
 } from "@/lib/schema";
 import { createOpenAIProvider } from "./openai";
 import { createAnthropicProvider } from "./anthropic";
 import { createGeminiProvider } from "./gemini";
 import { createGroqProvider } from "./groq";
+import type { Locale } from "@/lib/i18n/translations";
 
 export const PROVIDER_DEFAULTS: Record<string, string> = {
   openai: "gpt-4.1",
@@ -433,6 +436,115 @@ export async function checkGuardrail(
       .end();
     // Fail open on errors so a guardrail outage never blocks real conversations.
     return { onTopic: true, refusal: "" };
+  }
+}
+
+const CRISIS_HANDOFF_TIMEOUT_MS = 4000;
+
+/**
+ * Crisis handoff detector: flags real danger/threats/abuse in user input.
+ * Uses a cheaper model, fails open on error/timeout/unparseable response.
+ */
+export async function checkCrisisHandoff(
+  input: string,
+  systemPrompt: string,
+  roomLocale: Locale,
+  config?: LLMConfig,
+  options?: LLMRequestOptions,
+): Promise<CrisisDetection> {
+  const failOpen = (reason: string): CrisisDetection => {
+    console.error("[checkCrisisHandoff] fail-open:", reason);
+    return { high_risk: false, message_locale: roomLocale };
+  };
+
+  let gen: ReturnType<typeof startObservation> | undefined;
+  let accumulated = "";
+
+  const runCheck = async (): Promise<CrisisDetection> => {
+    try {
+      const { model, provider } = resolveCheapLLM(config);
+
+      gen = startObservation(
+        "crisis-handoff",
+        {
+          model,
+          modelParameters: { temperature: 0, reasoningEffort: "low" },
+          input: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: input },
+          ],
+        },
+        { asType: "generation" },
+      );
+
+      const it = provider.chatStream(
+        [{ role: "user", content: input }],
+        systemPrompt,
+        { ...options, reasoningEffort: "low" },
+      );
+      let r = await it.next();
+      while (!r.done) {
+        accumulated += r.value;
+        r = await it.next();
+      }
+      const usage = r.value;
+      const rawParsed = parseJsonObject(accumulated);
+      const validation = CrisisDetectionSchema.safeParse(rawParsed);
+
+      if (!validation.success) {
+        gen
+          .update({
+            output: accumulated,
+            ...(usage && { usageDetails: toLangfuseUsageDetails(usage) }),
+            metadata: { high_risk: false, crisis_error: "parse_error" },
+          })
+          .end();
+        return failOpen("parse_error");
+      }
+
+      gen
+        .update({
+          output: accumulated,
+          ...(usage && { usageDetails: toLangfuseUsageDetails(usage) }),
+          ...(validation.data.high_risk && {
+            metadata: {
+              high_risk: true,
+              crisis_locale: validation.data.message_locale,
+            },
+          }),
+        })
+        .end();
+
+      return validation.data;
+    } catch (err) {
+      console.error("[checkCrisisHandoff] failed:", err);
+      gen
+        ?.update({
+          output: accumulated,
+          level: "ERROR",
+          statusMessage: err instanceof Error ? err.message : String(err),
+          metadata: {
+            high_risk: false,
+            crisis_error: err instanceof Error ? err.message : String(err),
+          },
+        })
+        .end();
+      return failOpen(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  try {
+    return await Promise.race([
+      runCheck(),
+      new Promise<CrisisDetection>((resolve) =>
+        setTimeout(
+          () => resolve(failOpen("timeout")),
+          CRISIS_HANDOFF_TIMEOUT_MS,
+        ),
+      ),
+    ]);
+  } catch (err) {
+    return failOpen(err instanceof Error ? err.message : String(err));
   }
 }
 

@@ -107,6 +107,7 @@ export interface SendBody {
 
 export interface StreamHandlers {
   onMeta?: (mode: StreamMode, userMessage?: Message) => void;
+  onCrisis?: (message: Message) => void;
   onChunk?: (delta: string) => void;
   onDelta?: (delta: string) => void;
   onDone?: (message: Message) => void;
@@ -120,6 +121,7 @@ type SseEvent =
       roomId: string;
       userMessage?: Message;
     }
+  | { t: "crisis"; message: Message }
   | { t: "chunk"; v: string }
   | { t: "delta"; v: string }
   | { t: "done"; message: Message }
@@ -178,6 +180,9 @@ export async function streamMessage(
       }
 
       switch (msg.t) {
+        case "crisis":
+          handlers.onCrisis?.(msg.message);
+          break;
         case "meta":
           handlers.onMeta?.(msg.mode, msg.userMessage);
           break;
