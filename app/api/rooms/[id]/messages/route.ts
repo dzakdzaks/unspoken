@@ -6,6 +6,7 @@ import {
   generateSuggestions,
   updateConversationSummary,
   decideClarify,
+  checkGuardrail,
   MAX_CLARIFY_QUESTIONS,
   promptCacheKey,
   LLMError,
@@ -17,6 +18,7 @@ import {
   getSuggestionsSystemPrompt,
   getSummarizeSystemPrompt,
   getClarifyDecisionSystemPrompt,
+  getGuardrailSystemPrompt,
 } from "@/lib/prompt";
 import {
   buildChatHistory,
@@ -212,6 +214,44 @@ export async function POST(
             span.update({ input: skipClarify ? "[skip clarify]" : input });
 
             try {
+              // Scope guardrail: only accept relationship/partner-context input.
+              // Off-topic asks (write code, recipes, essays, etc.) are politely
+              // declined. Skipped for skipClarify (re-decode of already-accepted
+              // input). Fails open inside checkGuardrail.
+              if (!skipClarify) {
+                const guardrail = await checkGuardrail(
+                  input,
+                  getGuardrailSystemPrompt(parsedLang),
+                  llmConfig,
+                  {
+                    promptCacheKey: promptCacheKey("guardrail", parsedLang),
+                    reasoningEffort: "low",
+                  }
+                );
+
+                if (!guardrail.onTopic) {
+                  const refusal = guardrail.refusal.trim() || t.errors.offTopic;
+
+                  send({
+                    t: "meta",
+                    mode: "text",
+                    roomId,
+                    ...(userMessage ? { userMessage } : {}),
+                  });
+                  send({ t: "delta", v: refusal });
+
+                  const assistantMessage = await addMessage(roomId, {
+                    role: "assistant",
+                    kind: "text",
+                    content: refusal,
+                  });
+                  await touchRoom(roomId);
+                  span.update({ output: refusal });
+                  send({ t: "done", message: assistantMessage });
+                  return;
+                }
+              }
+
               let mode: StreamMode;
 
               if (hasDecode) {

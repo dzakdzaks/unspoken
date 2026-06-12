@@ -19,7 +19,7 @@ export async function fetchMe(): Promise<PublicUser | null> {
 export async function signUp(
   name: string,
   email: string,
-  password: string
+  password: string,
 ): Promise<PublicUser> {
   const res = await fetch("/api/auth/signup", {
     method: "POST",
@@ -33,7 +33,7 @@ export async function signUp(
 
 export async function signIn(
   email: string,
-  password: string
+  password: string,
 ): Promise<PublicUser> {
   const res = await fetch("/api/auth/signin", {
     method: "POST",
@@ -76,7 +76,7 @@ export async function deleteRoom(id: string): Promise<void> {
 }
 
 export async function fetchMessages(
-  id: string
+  id: string,
 ): Promise<{ room: Room; messages: Message[] }> {
   const res = await fetch(`/api/rooms/${id}/messages`);
   if (!res.ok) throw new Error("Failed to load messages.");
@@ -85,11 +85,11 @@ export async function fetchMessages(
 
 export async function deleteMessage(
   roomId: string,
-  messageId: string
+  messageId: string,
 ): Promise<void> {
   const res = await fetch(
     `/api/rooms/${roomId}/messages?messageId=${encodeURIComponent(messageId)}`,
-    { method: "DELETE" }
+    { method: "DELETE" },
   );
   if (!res.ok) throw new Error("Failed to delete message.");
 }
@@ -129,7 +129,7 @@ export async function streamMessage(
   roomId: string,
   body: SendBody,
   signal: AbortSignal,
-  handlers: StreamHandlers
+  handlers: StreamHandlers,
 ): Promise<void> {
   const res = await fetch(`/api/rooms/${roomId}/messages`, {
     method: "POST",

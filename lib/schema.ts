@@ -71,6 +71,13 @@ export const ClarifyDecisionSchema = z.discriminatedUnion("ready", [
 
 export type ClarifyDecision = z.infer<typeof ClarifyDecisionSchema>;
 
+export const GuardrailDecisionSchema = z.object({
+  on_topic: z.boolean(),
+  refusal: z.string().optional().default(""),
+});
+
+export type GuardrailDecision = z.infer<typeof GuardrailDecisionSchema>;
+
 export const TranslateRequestSchema = z.object({
   input: z
     .string()

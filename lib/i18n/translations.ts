@@ -84,6 +84,8 @@ export const translations = {
       streamInterrupted: "Got cut off. Want to try that again?",
       emptyInput: "Tell me what she said or did first!",
       inputTooLong: "Keep it under 500 characters and try again.",
+      offTopic:
+        "I'm just here for relationship stuff — what your partner said or did, mixed signals, that kind of thing. Tell me what's going on with them and I've got you.",
     },
     settings: {
       title: "AI Settings",
@@ -231,6 +233,8 @@ export const translations = {
       streamInterrupted: "Kecutup tiba-tiba. Mau coba lagi?",
       emptyInput: "Ceritain dulu dong apa yang dia bilang atau lakuin!",
       inputTooLong: "Maksimal 500 karakter ya, coba dipersingkat dulu.",
+      offTopic:
+        "Aku cuma bisa bantu soal hubungan kok — apa yang pasangan kamu bilang atau lakuin, sinyal campur aduk, hal-hal kayak gitu. Cerita aja ada apa sama dia, nanti aku bantu.",
     },
     settings: {
       title: "Pengaturan AI",

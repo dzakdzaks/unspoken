@@ -152,10 +152,7 @@ export default function ChatThread({
         if (m.kind === "decode" && m.decoded) {
           return (
             <div key={m.id} className="flex flex-col gap-3">
-              <ResultsDashboard
-                result={m.decoded}
-                showInputEcho={false}
-              />
+              <ResultsDashboard result={m.decoded} showInputEcho={false} />
               {isLatest && (
                 <DecodeQuickActions
                   suggestions={m.decoded.follow_ups}

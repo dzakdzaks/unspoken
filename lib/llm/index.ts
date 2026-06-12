@@ -6,7 +6,11 @@ import {
   type LLMRequestOptions,
   type TokenUsage,
 } from "./types";
-import { ClarifyDecisionSchema, type ClarifyDecision } from "@/lib/schema";
+import {
+  ClarifyDecisionSchema,
+  GuardrailDecisionSchema,
+  type ClarifyDecision,
+} from "@/lib/schema";
 import { createOpenAIProvider } from "./openai";
 import { createAnthropicProvider } from "./anthropic";
 import { createGeminiProvider } from "./gemini";
@@ -351,6 +355,84 @@ export async function decideClarify(
   } catch (err) {
     gen.update({ output: accumulated, level: "ERROR" }).end();
     throw err;
+  }
+}
+
+export interface GuardrailResult {
+  onTopic: boolean;
+  refusal: string;
+}
+
+/**
+ * Scope guardrail: decide whether the user's latest message is within Unspoken's
+ * relationship-help scope. Uses a cheaper model and fails open — on any error or
+ * unparseable response it allows the message through so legitimate users are never
+ * blocked by a flaky guardrail call.
+ */
+export async function checkGuardrail(
+  input: string,
+  systemPrompt: string,
+  config?: LLMConfig,
+  options?: LLMRequestOptions,
+): Promise<GuardrailResult> {
+  let gen: ReturnType<typeof startObservation> | undefined;
+  let accumulated = "";
+
+  try {
+    const { model, provider } = resolveCheapLLM(config);
+
+    gen = startObservation(
+      "guardrail",
+      {
+        model,
+        modelParameters: { temperature: 0, reasoningEffort: "low" },
+        input: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: input },
+        ],
+      },
+      { asType: "generation" },
+    );
+
+    const it = provider.chatStream(
+      [{ role: "user", content: input }],
+      systemPrompt,
+      { ...options, reasoningEffort: "low" },
+    );
+    let r = await it.next();
+    while (!r.done) {
+      accumulated += r.value;
+      r = await it.next();
+    }
+    const usage = r.value;
+    gen
+      .update({
+        output: accumulated,
+        ...(usage && { usageDetails: toLangfuseUsageDetails(usage) }),
+      })
+      .end();
+
+    const rawParsed = parseJsonObject(accumulated);
+    const validation = GuardrailDecisionSchema.safeParse(rawParsed);
+    if (!validation.success) {
+      // Fail open: don't block the user on an unparseable guardrail response.
+      return { onTopic: true, refusal: "" };
+    }
+    return {
+      onTopic: validation.data.on_topic,
+      refusal: validation.data.refusal,
+    };
+  } catch (err) {
+    console.error("[checkGuardrail] failed:", err);
+    gen
+      ?.update({
+        output: accumulated,
+        level: "ERROR",
+        statusMessage: err instanceof Error ? err.message : String(err),
+      })
+      .end();
+    // Fail open on errors so a guardrail outage never blocks real conversations.
+    return { onTopic: true, refusal: "" };
   }
 }
 

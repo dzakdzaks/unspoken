@@ -76,7 +76,7 @@ export async function listRooms(userId: string): Promise<Room[]> {
 export async function createRoom(
   userId: string,
   title: string,
-  lang: Locale
+  lang: Locale,
 ): Promise<Room> {
   const col = await rooms();
   const now = new Date();
@@ -93,7 +93,10 @@ export async function createRoom(
 }
 
 /** Returns the room only if it belongs to the given user. */
-export async function getRoom(userId: string, roomId: string): Promise<Room | null> {
+export async function getRoom(
+  userId: string,
+  roomId: string,
+): Promise<Room | null> {
   const oid = toObjectId(roomId);
   if (!oid) return null;
   const col = await rooms();
@@ -104,7 +107,7 @@ export async function getRoom(userId: string, roomId: string): Promise<Room | nu
 export async function renameRoom(
   userId: string,
   roomId: string,
-  title: string
+  title: string,
 ): Promise<Room | null> {
   const oid = toObjectId(roomId);
   if (!oid) return null;
@@ -112,12 +115,15 @@ export async function renameRoom(
   const doc = await col.findOneAndUpdate(
     { _id: oid, userId },
     { $set: { title: title.slice(0, 80), updatedAt: new Date() } },
-    { returnDocument: "after" }
+    { returnDocument: "after" },
   );
   return doc ? serializeRoom(doc) : null;
 }
 
-export async function deleteRoom(userId: string, roomId: string): Promise<boolean> {
+export async function deleteRoom(
+  userId: string,
+  roomId: string,
+): Promise<boolean> {
   const oid = toObjectId(roomId);
   if (!oid) return false;
   const roomCol = await rooms();
@@ -138,7 +144,7 @@ export async function touchRoom(roomId: string): Promise<void> {
 export async function updateRoomContextSummary(
   roomId: string,
   contextSummary: string,
-  summaryThroughMessageId: string
+  summaryThroughMessageId: string,
 ): Promise<void> {
   const oid = toObjectId(roomId);
   if (!oid) return;
@@ -151,7 +157,7 @@ export async function updateRoomContextSummary(
         summaryThroughMessageId,
         updatedAt: new Date(),
       },
-    }
+    },
   );
 }
 
@@ -174,7 +180,7 @@ export async function countMessages(roomId: string): Promise<number> {
  * user turn (one whose assistant reply failed) before a retry. */
 export async function deleteMessage(
   roomId: string,
-  messageId: string
+  messageId: string,
 ): Promise<boolean> {
   const roomOid = toObjectId(roomId);
   const msgOid = toObjectId(messageId);
@@ -192,7 +198,10 @@ interface NewMessage {
   suggestions?: string[];
 }
 
-export async function addMessage(roomId: string, msg: NewMessage): Promise<Message> {
+export async function addMessage(
+  roomId: string,
+  msg: NewMessage,
+): Promise<Message> {
   const oid = toObjectId(roomId);
   if (!oid) throw new Error("Invalid room id.");
   const col = await messages();

@@ -38,7 +38,11 @@ interface RoomState {
   error: string | null;
 }
 
-const EMPTY_ROOM_STATE: RoomState = { messages: [], streaming: null, error: null };
+const EMPTY_ROOM_STATE: RoomState = {
+  messages: [],
+  streaming: null,
+  error: null,
+};
 
 export default function Home() {
   const { t, locale } = useI18n();
@@ -48,14 +52,19 @@ export default function Home() {
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
 
   // Per-room state: messages, streaming progress, and error — all keyed by roomId
-  const [roomStates, setRoomStates] = useState<Map<string, RoomState>>(new Map());
+  const [roomStates, setRoomStates] = useState<Map<string, RoomState>>(
+    new Map(),
+  );
 
   // Error shown only in the null (new-chat) state
   const [nullError, setNullError] = useState<string | null>(null);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [llmSettings, setLLMSettings] = useState<LLMSettings>(DEFAULT_SETTINGS);
-  const handleSettingsChange = useCallback((s: LLMSettings) => setLLMSettings(s), []);
+  const handleSettingsChange = useCallback(
+    (s: LLMSettings) => setLLMSettings(s),
+    [],
+  );
 
   // One AbortController per room — streams survive room switches
   const abortRefs = useRef<Map<string, AbortController>>(new Map());
@@ -75,7 +84,9 @@ export default function Home() {
 
   useEffect(() => {
     if (!user) return;
-    fetchRooms().then(setRooms).catch(() => {});
+    fetchRooms()
+      .then(setRooms)
+      .catch(() => {});
   }, [user]);
 
   const startNewChat = useCallback(() => {
@@ -138,7 +149,9 @@ export default function Home() {
     lastInputRef.current = input;
 
     let roomId = activeRoomId;
-    const currentMessages = roomId ? (roomStates.get(roomId)?.messages ?? []) : [];
+    const currentMessages = roomId
+      ? (roomStates.get(roomId)?.messages ?? [])
+      : [];
     const inPreDecode = !currentMessages.some((m) => m.kind === "decode");
 
     if (!roomId) {
@@ -196,7 +209,9 @@ export default function Home() {
         onMeta: (mode, userMessage) => {
           setRoom(targetRoomId, (s) => ({
             ...s,
-            streaming: s.streaming ? { ...s.streaming, mode } : { mode, raw: "" },
+            streaming: s.streaming
+              ? { ...s.streaming, mode }
+              : { mode, raw: "" },
             messages: userMessage
               ? s.messages.map((m) => (m.id === tempId ? userMessage : m))
               : s.messages,
@@ -205,12 +220,16 @@ export default function Home() {
         onChunk: (v) =>
           setRoom(targetRoomId, (s) => ({
             ...s,
-            streaming: s.streaming ? { ...s.streaming, raw: s.streaming.raw + v } : s.streaming,
+            streaming: s.streaming
+              ? { ...s.streaming, raw: s.streaming.raw + v }
+              : s.streaming,
           })),
         onDelta: (v) =>
           setRoom(targetRoomId, (s) => ({
             ...s,
-            streaming: s.streaming ? { ...s.streaming, raw: s.streaming.raw + v } : s.streaming,
+            streaming: s.streaming
+              ? { ...s.streaming, raw: s.streaming.raw + v }
+              : s.streaming,
           })),
         onDone: (message) => {
           setRoom(targetRoomId, (s) => ({
@@ -228,7 +247,11 @@ export default function Home() {
       });
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") return;
-      setRoom(targetRoomId, (s) => ({ ...s, streaming: null, error: t.errors.generic }));
+      setRoom(targetRoomId, (s) => ({
+        ...s,
+        streaming: null,
+        error: t.errors.generic,
+      }));
       abortRefs.current.delete(targetRoomId);
     }
   }
@@ -266,18 +289,24 @@ export default function Home() {
         onMeta: (mode) => {
           setRoom(roomId, (s) => ({
             ...s,
-            streaming: s.streaming ? { ...s.streaming, mode } : { mode, raw: "" },
+            streaming: s.streaming
+              ? { ...s.streaming, mode }
+              : { mode, raw: "" },
           }));
         },
         onChunk: (v) =>
           setRoom(roomId, (s) => ({
             ...s,
-            streaming: s.streaming ? { ...s.streaming, raw: s.streaming.raw + v } : s.streaming,
+            streaming: s.streaming
+              ? { ...s.streaming, raw: s.streaming.raw + v }
+              : s.streaming,
           })),
         onDelta: (v) =>
           setRoom(roomId, (s) => ({
             ...s,
-            streaming: s.streaming ? { ...s.streaming, raw: s.streaming.raw + v } : s.streaming,
+            streaming: s.streaming
+              ? { ...s.streaming, raw: s.streaming.raw + v }
+              : s.streaming,
           })),
         onDone: (message) => {
           setRoom(roomId, (s) => ({
@@ -295,7 +324,11 @@ export default function Home() {
       });
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") return;
-      setRoom(roomId, (s) => ({ ...s, streaming: null, error: t.errors.generic }));
+      setRoom(roomId, (s) => ({
+        ...s,
+        streaming: null,
+        error: t.errors.generic,
+      }));
       abortRefs.current.delete(roomId);
     }
   }
@@ -353,7 +386,9 @@ export default function Home() {
     return <AuthScreen />;
   }
 
-  const activeState = activeRoomId ? (roomStates.get(activeRoomId) ?? EMPTY_ROOM_STATE) : null;
+  const activeState = activeRoomId
+    ? (roomStates.get(activeRoomId) ?? EMPTY_ROOM_STATE)
+    : null;
   const messages = activeState?.messages ?? [];
   const streaming = activeState?.streaming ?? null;
   const error = activeState?.error ?? nullError;
@@ -365,7 +400,9 @@ export default function Home() {
   }
 
   const hasAssistant = messages.some((m) => m.role === "assistant");
-  const composerPlaceholder = hasAssistant ? t.chat.replyPlaceholder : t.input.placeholder;
+  const composerPlaceholder = hasAssistant
+    ? t.chat.replyPlaceholder
+    : t.input.placeholder;
   const showEmpty = activeRoomId === null;
 
   return (
