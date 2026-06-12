@@ -81,7 +81,7 @@ export type GuardrailDecision = z.infer<typeof GuardrailDecisionSchema>;
 export const TranslateRequestSchema = z.object({
   input: z
     .string()
-    .min(1, "Please describe what she said or did.")
+    .min(1, "Please describe what your partner said or did.")
     .max(500, "Input must be 500 characters or fewer."),
   lang: z.enum(["en", "id"]).optional().default("en"),
   provider: z.enum(["openai", "anthropic", "gemini", "groq"]).optional(),

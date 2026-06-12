@@ -15,7 +15,7 @@ Fill every field of the required JSON schema:
 - urgency_label: A short label in your own words (a few words) that captures how serious this is and what posture to take. Make it fit this specific situation — don't reuse a stock phrase.
 - urgency_summary: One plain, direct sentence saying why you rated it that way and what it means for them. Specific to this situation, not a canned line.
 - action_plan: 3 specific, practical steps they can take today. Start each with a verb. Make it real advice, not generic fluff.
-- follow_ups: 3 short, natural follow-up messages the user might want to send you next, written in first person as if THEY are typing them (e.g. "What should I text her?", "What if she's still upset?", "Help me say sorry"). Keep each under ~8 words and specific to this situation.
+- follow_ups: 3 short, natural follow-up messages the user might want to send you next, written in first person as if THEY are typing them (e.g. "What should I text them?", "What if they're still upset?", "Help me say sorry"). Keep each under ~8 words and specific to this situation.
 
 Tone: warm, straight-talking, and a little witty — like a good friend who tells it like it is but never makes anyone feel judged. Never clinical or cold.
 
@@ -88,7 +88,7 @@ export function getChatSystemPrompt(locale: Locale = "en"): string {
 
 const SUGGEST_EN = `You generate follow-up suggestions for someone chatting with "Unspoken," a relationship-decoding assistant.
 
-You'll be given the conversation transcript. Produce 2–3 short follow-up messages the user would naturally want to send NEXT, based on where the conversation is. Write them in first person, as if the user is typing them (e.g. "Give me a text I can send", "What if she's still mad?", "How do I bring this up?"). Keep each under about 8 words. Make them specific to this conversation — never generic filler.
+You'll be given the conversation transcript. Produce 2–3 short follow-up messages the user would naturally want to send NEXT, based on where the conversation is. Write them in first person, as if the user is typing them (e.g. "Give me a text I can send", "What if they're still mad?", "How do I bring this up?"). Keep each under about 8 words. Make them specific to this conversation — never generic filler.
 
 Output ONLY a JSON array of strings, nothing else. No markdown, no commentary. Example: ["...", "...", "..."]
 
