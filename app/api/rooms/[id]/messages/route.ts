@@ -7,6 +7,7 @@ import {
   updateConversationSummary,
   decideClarify,
   checkGuardrail,
+  checkCrisisHandoff,
   MAX_CLARIFY_QUESTIONS,
   promptCacheKey,
   LLMError,
@@ -19,6 +20,9 @@ import {
   getSummarizeSystemPrompt,
   getClarifyDecisionSystemPrompt,
   getGuardrailSystemPrompt,
+  getCrisisDetectionSystemPrompt,
+  getCrisisAwareDecodeSuffix,
+  getCrisisAwareChatSuffix,
 } from "@/lib/prompt";
 import {
   buildChatHistory,
@@ -42,6 +46,8 @@ import {
 import type { Message } from "@/lib/chat/types";
 import type { Locale } from "@/lib/i18n/translations";
 import { translations } from "@/lib/i18n/translations";
+import { resolveCrisisLocale } from "@/lib/crisis/locale";
+import { CRISIS_RESOURCES_VERSION } from "@/lib/crisis/resources";
 import { startActiveObservation, propagateAttributes } from "@langfuse/tracing";
 import { langfuseSpanProcessor } from "@/instrumentation";
 
@@ -57,6 +63,42 @@ function getClientIp(req: NextRequest): string {
 
 function sse(payload: unknown): string {
   return `data: ${JSON.stringify(payload)}\n\n`;
+}
+
+function buildCrisisDetectionInput(
+  input: string,
+  skipClarify: boolean,
+  allMessages: Message[],
+  hasDecode: boolean,
+): string {
+  if (skipClarify) {
+    for (let i = allMessages.length - 1; i >= 0; i--) {
+      if (allMessages[i].role === "user") {
+        return allMessages[i].content;
+      }
+    }
+    return input;
+  }
+
+  const latest =
+    input.trim() ||
+    [...allMessages].reverse().find((m) => m.role === "user")?.content ||
+    "";
+
+  if (hasDecode && allMessages.length > 1) {
+    const prior = allMessages.slice(0, -1).slice(-4);
+    if (prior.length > 0) {
+      const context = prior
+        .map((m) => {
+          const label = m.role === "user" ? "User" : "Assistant";
+          return `${label}: ${m.content.slice(0, 300)}`;
+        })
+        .join("\n");
+      return `Recent context:\n${context}\n\nLatest message:\n${latest}`;
+    }
+  }
+
+  return latest;
 }
 
 export async function GET(
@@ -252,6 +294,56 @@ export async function POST(
                 }
               }
 
+              const detectionInput = buildCrisisDetectionInput(
+                input,
+                skipClarify,
+                allMessages,
+                hasDecode,
+              );
+
+              let crisisFlagged = false;
+              let crisisLocale: Locale = parsedLang;
+
+              if (detectionInput.trim()) {
+                const crisis = await checkCrisisHandoff(
+                  detectionInput,
+                  getCrisisDetectionSystemPrompt(parsedLang),
+                  parsedLang,
+                  llmConfig,
+                  {
+                    promptCacheKey: promptCacheKey("crisis", parsedLang),
+                    reasoningEffort: "low",
+                  },
+                );
+
+                if (crisis.high_risk) {
+                  crisisFlagged = true;
+                  crisisLocale = resolveCrisisLocale(
+                    detectionInput,
+                    parsedLang,
+                    crisis.message_locale,
+                  );
+
+                  const crisisMessage = await addMessage(roomId, {
+                    role: "assistant",
+                    kind: "crisis",
+                    content: "",
+                    crisisLocale,
+                  });
+                  await touchRoom(roomId);
+
+                  span.update({
+                    metadata: {
+                      crisis_handoff: "true",
+                      crisis_locale: crisisLocale,
+                      crisis_resources_version: CRISIS_RESOURCES_VERSION,
+                    },
+                  });
+
+                  send({ t: "crisis", message: crisisMessage });
+                }
+              }
+
               let mode: StreamMode;
 
               if (hasDecode) {
@@ -305,10 +397,15 @@ export async function POST(
 
               if (mode === "decode") {
                 const decodeInput = formatClarifyTranscriptForDecode(allMessages);
+                const decodeSystemPrompt =
+                  getSystemPrompt(parsedLang) +
+                  (crisisFlagged
+                    ? getCrisisAwareDecodeSuffix(crisisLocale)
+                    : "");
                 let accumulated = "";
                 for await (const chunk of translateStream(
                   decodeInput,
-                  getSystemPrompt(parsedLang),
+                  decodeSystemPrompt,
                   llmConfig,
                   {
                     promptCacheKey: promptCacheKey("decode", parsedLang),
@@ -379,10 +476,16 @@ export async function POST(
                   contextSummary
                 );
 
+                const chatSystemPrompt =
+                  getChatSystemPrompt(parsedLang) +
+                  (crisisFlagged
+                    ? getCrisisAwareChatSuffix(crisisLocale)
+                    : "");
+
                 let accumulated = "";
                 for await (const chunk of chatStream(
                   history,
-                  getChatSystemPrompt(parsedLang),
+                  chatSystemPrompt,
                   llmConfig,
                   { promptCacheKey: promptCacheKey("chat", parsedLang) }
                 )) {

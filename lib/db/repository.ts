@@ -25,6 +25,7 @@ interface MessageDoc {
   content: string;
   decoded?: TranslationResult;
   suggestions?: string[];
+  crisisLocale?: Locale;
   createdAt: Date;
 }
 
@@ -63,6 +64,7 @@ function serializeMessage(doc: MessageDoc): Message {
     content: doc.content,
     decoded: doc.decoded,
     suggestions: doc.suggestions,
+    ...(doc.crisisLocale ? { crisisLocale: doc.crisisLocale } : {}),
     createdAt: doc.createdAt.toISOString(),
   };
 }
@@ -196,6 +198,7 @@ interface NewMessage {
   content: string;
   decoded?: TranslationResult;
   suggestions?: string[];
+  crisisLocale?: Locale;
 }
 
 export async function addMessage(
@@ -213,6 +216,7 @@ export async function addMessage(
     content: msg.content,
     ...(msg.decoded ? { decoded: msg.decoded } : {}),
     ...(msg.suggestions?.length ? { suggestions: msg.suggestions } : {}),
+    ...(msg.crisisLocale ? { crisisLocale: msg.crisisLocale } : {}),
     createdAt: new Date(),
   };
   await col.insertOne(doc);

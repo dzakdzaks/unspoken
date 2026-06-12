@@ -78,6 +78,13 @@ export const GuardrailDecisionSchema = z.object({
 
 export type GuardrailDecision = z.infer<typeof GuardrailDecisionSchema>;
 
+export const CrisisDetectionSchema = z.object({
+  high_risk: z.boolean(),
+  message_locale: z.enum(["en", "id"]),
+});
+
+export type CrisisDetection = z.infer<typeof CrisisDetectionSchema>;
+
 export const TranslateRequestSchema = z.object({
   input: z
     .string()

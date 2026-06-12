@@ -2,7 +2,7 @@ import type { TranslationResult } from "@/lib/schema";
 import type { Locale } from "@/lib/i18n/translations";
 
 export type Role = "user" | "assistant";
-export type MessageKind = "text" | "decode" | "clarify";
+export type MessageKind = "text" | "decode" | "clarify" | "crisis";
 
 export interface Room {
   id: string;
@@ -25,5 +25,7 @@ export interface Message {
   decoded?: TranslationResult;
   /** Contextual follow-up prompts surfaced under the latest assistant reply. */
   suggestions?: string[];
+  /** Locale for crisis handoff copy and resources when kind is "crisis". */
+  crisisLocale?: Locale;
   createdAt: string;
 }
