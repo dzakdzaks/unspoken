@@ -11,6 +11,7 @@
     "test:watch": "vitest --config vitest.config.mts",
     "agents:tick": "tsx agents/orchestrator.ts",
     "agents:watch": "tsx agents/orchestrator.ts --watch",
+    "agents:groom": "tsx agents/groom.ts",
     "agents:seed": "tsx agents/seed.ts",
     "agents:seed-labels": "tsx agents/seed.ts --labels-only"
   },
