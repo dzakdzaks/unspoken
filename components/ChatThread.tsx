@@ -12,7 +12,7 @@ import SuggestionChips from "./SuggestionChips";
 import DecodeQuickActions from "./DecodeQuickActions";
 
 export interface StreamingState {
-  mode: "decode" | "text";
+  mode: "decode" | "text" | "clarify";
   raw: string;
 }
 
@@ -21,6 +21,7 @@ interface ChatThreadProps {
   streaming: StreamingState | null;
   error: string | null;
   onSuggestionSelect: (text: string) => void;
+  onSkipClarify?: () => void;
   onRetry?: () => void;
 }
 
@@ -112,8 +113,10 @@ export default function ChatThread({
   streaming,
   error,
   onSuggestionSelect,
+  onSkipClarify,
   onRetry,
 }: ChatThreadProps) {
+  const { t } = useI18n();
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -127,6 +130,7 @@ export default function ChatThread({
     if (m.role === "assistant") lastAssistantId = m.id;
   }
   const interactive = streaming === null;
+  const hasDecode = messages.some((m) => m.kind === "decode");
 
   return (
     <div className="flex flex-col gap-4">
@@ -158,6 +162,24 @@ export default function ChatThread({
                   onSelect={onSuggestionSelect}
                   disabled={!interactive}
                 />
+              )}
+            </div>
+          );
+        }
+
+        if (m.kind === "clarify") {
+          return (
+            <div key={m.id} className="flex flex-col gap-2">
+              <AssistantBubble content={m.content} />
+              {chips}
+              {isLatest && !hasDecode && onSkipClarify && (
+                <button
+                  type="button"
+                  onClick={onSkipClarify}
+                  className="self-start text-xs font-semibold text-muted transition-colors hover:text-body"
+                >
+                  {t.chat.skipClarify}
+                </button>
               )}
             </div>
           );

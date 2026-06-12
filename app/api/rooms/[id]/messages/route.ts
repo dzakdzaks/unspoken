@@ -5,17 +5,22 @@ import {
   translateStream,
   generateSuggestions,
   updateConversationSummary,
+  decideClarify,
+  MAX_CLARIFY_QUESTIONS,
   promptCacheKey,
   LLMError,
+  type LLMConfig,
 } from "@/lib/llm";
 import {
   getSystemPrompt,
   getChatSystemPrompt,
   getSuggestionsSystemPrompt,
   getSummarizeSystemPrompt,
+  getClarifyDecisionSystemPrompt,
 } from "@/lib/prompt";
 import {
   buildChatHistory,
+  formatClarifyTranscriptForDecode,
   formatMessagesForSummary,
   formatSuggestionsTranscript,
   getUnsummarizedOlderMessages,
@@ -32,10 +37,13 @@ import {
   touchRoom,
   updateRoomContextSummary,
 } from "@/lib/db/repository";
+import type { Message } from "@/lib/chat/types";
 import type { Locale } from "@/lib/i18n/translations";
 import { translations } from "@/lib/i18n/translations";
 import { startActiveObservation, propagateAttributes } from "@langfuse/tracing";
 import { langfuseSpanProcessor } from "@/instrumentation";
+
+type StreamMode = "decode" | "text" | "clarify";
 
 function getClientIp(req: NextRequest): string {
   return (
@@ -146,21 +154,41 @@ export async function POST(
     return NextResponse.json({ error: "Room not found." }, { status: 404 });
   }
 
-  const { input, lang: parsedLang, provider, model, apiKey } = parsed.data;
-  const llmConfig = { provider, model, apiKey };
+  const { input, lang: parsedLang, skipClarify, provider, model, apiKey } =
+    parsed.data;
+  const llmConfig: LLMConfig = { provider, model, apiKey };
 
-  // First message in a room produces the structured decode; subsequent
-  // messages are conversational free text.
   const priorMessages = await listMessages(roomId);
-  const mode: "decode" | "text" = priorMessages.length === 0 ? "decode" : "text";
+  const hasDecode = priorMessages.some((m) => m.kind === "decode");
+  const clarifyCount = priorMessages.filter((m) => m.kind === "clarify").length;
 
-  // Persist the user's message before streaming the assistant reply.
-  const userMessage = await addMessage(roomId, {
-    role: "user",
-    kind: "text",
-    content: input,
-  });
-  await touchRoom(roomId);
+  if (skipClarify) {
+    if (hasDecode) {
+      return NextResponse.json(
+        { error: "Cannot skip clarification after decode." },
+        { status: 400 }
+      );
+    }
+    if (priorMessages.length === 0) {
+      return NextResponse.json(
+        { error: "Nothing to decode yet." },
+        { status: 400 }
+      );
+    }
+  }
+
+  let userMessage: Message | null = null;
+  let allMessages = priorMessages;
+
+  if (!skipClarify) {
+    userMessage = await addMessage(roomId, {
+      role: "user",
+      kind: "text",
+      content: input,
+    });
+    allMessages = [...priorMessages, userMessage];
+    await touchRoom(roomId);
+  }
 
   const encoder = new TextEncoder();
 
@@ -174,25 +202,78 @@ export async function POST(
           userId,
           sessionId: roomId,
           metadata: {
-            mode,
+            skipClarify: String(skipClarify),
             lang: parsedLang,
             provider: parsed.data.provider ?? "default",
           },
         },
         async () => {
           await startActiveObservation("send-message", async (span) => {
-            span.update({ input });
+            span.update({ input: skipClarify ? "[skip clarify]" : input });
 
             try {
-              send({ t: "meta", mode, roomId, userMessage });
+              let mode: StreamMode;
+
+              if (hasDecode) {
+                mode = "text";
+              } else if (skipClarify || clarifyCount >= MAX_CLARIFY_QUESTIONS) {
+                mode = "decode";
+              } else {
+                const transcript = formatClarifyTranscriptForDecode(allMessages);
+                const decision = await decideClarify(
+                  transcript,
+                  clarifyCount,
+                  MAX_CLARIFY_QUESTIONS,
+                  getClarifyDecisionSystemPrompt(parsedLang),
+                  llmConfig,
+                  {
+                    promptCacheKey: promptCacheKey("clarify", parsedLang),
+                    reasoningEffort: "low",
+                  }
+                );
+                mode = decision.ready ? "decode" : "clarify";
+
+                if (mode === "clarify" && !decision.ready) {
+                  send({
+                    t: "meta",
+                    mode,
+                    roomId,
+                    ...(userMessage ? { userMessage } : {}),
+                  });
+
+                  send({ t: "delta", v: decision.question });
+
+                  const assistantMessage = await addMessage(roomId, {
+                    role: "assistant",
+                    kind: "clarify",
+                    content: decision.question,
+                    suggestions: decision.quick_replies,
+                  });
+                  await touchRoom(roomId);
+                  span.update({ output: decision.question });
+                  send({ t: "done", message: assistantMessage });
+                  return;
+                }
+              }
+
+              send({
+                t: "meta",
+                mode,
+                roomId,
+                ...(userMessage ? { userMessage } : {}),
+              });
 
               if (mode === "decode") {
+                const decodeInput = formatClarifyTranscriptForDecode(allMessages);
                 let accumulated = "";
                 for await (const chunk of translateStream(
-                  input,
+                  decodeInput,
                   getSystemPrompt(parsedLang),
                   llmConfig,
-                  { promptCacheKey: promptCacheKey("decode", parsedLang) }
+                  {
+                    promptCacheKey: promptCacheKey("decode", parsedLang),
+                    reasoningEffort: "medium",
+                  }
                 )) {
                   accumulated += chunk;
                   send({ t: "chunk", v: chunk });
@@ -203,14 +284,12 @@ export async function POST(
                   rawParsed = JSON.parse(accumulated);
                 } catch {
                   send({ t: "error", code: "PARSE_ERROR", message: t.errors.generic });
-                  controller.close();
                   return;
                 }
 
                 const validation = TranslationResultSchema.safeParse(rawParsed);
                 if (!validation.success) {
                   send({ t: "error", code: "PARSE_ERROR", message: t.errors.generic });
-                  controller.close();
                   return;
                 }
 
@@ -256,7 +335,7 @@ export async function POST(
 
                 const { recent } = splitMessagesForContext(priorMessages);
                 const history = buildChatHistory(
-                  [...recent, userMessage],
+                  userMessage ? [...recent, userMessage] : recent,
                   contextSummary
                 );
 
@@ -273,8 +352,6 @@ export async function POST(
 
                 const reply = accumulated.trim();
 
-                // Best-effort follow-up suggestions via a second lightweight call.
-                // Never blocks or breaks the reply — returns [] on any failure.
                 const suggestionContext = [
                   ...history,
                   { role: "assistant" as const, content: reply },

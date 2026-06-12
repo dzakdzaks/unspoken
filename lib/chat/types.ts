@@ -2,7 +2,7 @@ import type { TranslationResult } from "@/lib/schema";
 import type { Locale } from "@/lib/i18n/translations";
 
 export type Role = "user" | "assistant";
-export type MessageKind = "text" | "decode";
+export type MessageKind = "text" | "decode" | "clarify";
 
 export interface Room {
   id: string;

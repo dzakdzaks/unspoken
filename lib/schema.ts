@@ -58,6 +58,19 @@ export const TranslationResultSchema = z.object({
 
 export type TranslationResult = z.infer<typeof TranslationResultSchema>;
 
+export const ClarifyDecisionSchema = z.discriminatedUnion("ready", [
+  z.object({
+    ready: z.literal(false),
+    question: z.string().min(1),
+    quick_replies: z.array(z.string()).min(2).max(3),
+  }),
+  z.object({
+    ready: z.literal(true),
+  }),
+]);
+
+export type ClarifyDecision = z.infer<typeof ClarifyDecisionSchema>;
+
 export const TranslateRequestSchema = z.object({
   input: z
     .string()
@@ -95,13 +108,28 @@ export const SignInRequestSchema = z.object({
 
 export type SignInRequest = z.infer<typeof SignInRequestSchema>;
 
-export const SendMessageRequestSchema = z.object({
-  input: z
-    .string()
-    .min(1, "Please type a message.")
-    .max(500, "Message must be 500 characters or fewer."),
-  lang: z.enum(["en", "id"]).optional().default("en"),
-  provider: z.enum(["openai", "anthropic", "gemini", "groq"]).optional(),
-  model: z.string().max(100).optional(),
-  apiKey: z.string().max(200).optional(),
-});
+export const SendMessageRequestSchema = z
+  .object({
+    input: z
+      .string()
+      .max(500, "Message must be 500 characters or fewer.")
+      .default(""),
+    lang: z.enum(["en", "id"]).optional().default("en"),
+    skipClarify: z.boolean().optional().default(false),
+    provider: z.enum(["openai", "anthropic", "gemini", "groq"]).optional(),
+    model: z.string().max(100).optional(),
+    apiKey: z.string().max(200).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.skipClarify) return;
+    if (data.input.trim().length === 0) {
+      ctx.addIssue({
+        code: "too_small",
+        minimum: 1,
+        type: "string",
+        inclusive: true,
+        message: "Please type a message.",
+        path: ["input"],
+      });
+    }
+  });

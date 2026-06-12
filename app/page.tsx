@@ -139,7 +139,7 @@ export default function Home() {
 
     let roomId = activeRoomId;
     const currentMessages = roomId ? (roomStates.get(roomId)?.messages ?? []) : [];
-    const willDecode = roomId === null || currentMessages.length === 0;
+    const inPreDecode = !currentMessages.some((m) => m.kind === "decode");
 
     if (!roomId) {
       try {
@@ -179,7 +179,7 @@ export default function Home() {
     setRoom(targetRoomId, (s) => ({
       ...s,
       messages: [...s.messages, optimistic],
-      streaming: { mode: willDecode ? "decode" : "text", raw: "" },
+      streaming: { mode: inPreDecode ? "clarify" : "text", raw: "" },
       error: null,
     }));
 
@@ -197,7 +197,9 @@ export default function Home() {
           setRoom(targetRoomId, (s) => ({
             ...s,
             streaming: s.streaming ? { ...s.streaming, mode } : { mode, raw: "" },
-            messages: s.messages.map((m) => (m.id === tempId ? userMessage : m)),
+            messages: userMessage
+              ? s.messages.map((m) => (m.id === tempId ? userMessage : m))
+              : s.messages,
           }));
         },
         onChunk: (v) =>
@@ -228,6 +230,73 @@ export default function Home() {
       if (err instanceof Error && err.name === "AbortError") return;
       setRoom(targetRoomId, (s) => ({ ...s, streaming: null, error: t.errors.generic }));
       abortRefs.current.delete(targetRoomId);
+    }
+  }
+
+  async function handleSkipClarify() {
+    if (!activeRoomId) return;
+
+    const roomId = activeRoomId;
+    const msgs = roomStates.get(roomId)?.messages ?? [];
+    if (msgs.some((m) => m.kind === "decode")) return;
+    if (msgs.length === 0) return;
+    if (roomStates.get(roomId)?.streaming) return;
+
+    abortRefs.current.get(roomId)?.abort();
+    const controller = new AbortController();
+    abortRefs.current.set(roomId, controller);
+
+    setRoom(roomId, (s) => ({
+      ...s,
+      streaming: { mode: "decode", raw: "" },
+      error: null,
+    }));
+
+    const body = {
+      input: "",
+      lang: locale,
+      skipClarify: true,
+      ...(llmSettings.provider ? { provider: llmSettings.provider } : {}),
+      ...(llmSettings.model ? { model: llmSettings.model } : {}),
+      ...(llmSettings.apiKey ? { apiKey: llmSettings.apiKey } : {}),
+    };
+
+    try {
+      await streamMessage(roomId, body, controller.signal, {
+        onMeta: (mode) => {
+          setRoom(roomId, (s) => ({
+            ...s,
+            streaming: s.streaming ? { ...s.streaming, mode } : { mode, raw: "" },
+          }));
+        },
+        onChunk: (v) =>
+          setRoom(roomId, (s) => ({
+            ...s,
+            streaming: s.streaming ? { ...s.streaming, raw: s.streaming.raw + v } : s.streaming,
+          })),
+        onDelta: (v) =>
+          setRoom(roomId, (s) => ({
+            ...s,
+            streaming: s.streaming ? { ...s.streaming, raw: s.streaming.raw + v } : s.streaming,
+          })),
+        onDone: (message) => {
+          setRoom(roomId, (s) => ({
+            ...s,
+            messages: [...s.messages, message],
+            streaming: null,
+          }));
+          abortRefs.current.delete(roomId);
+          setRooms((prev) => moveToFront(prev, roomId));
+        },
+        onError: (msg) => {
+          setRoom(roomId, (s) => ({ ...s, streaming: null, error: msg }));
+          abortRefs.current.delete(roomId);
+        },
+      });
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") return;
+      setRoom(roomId, (s) => ({ ...s, streaming: null, error: t.errors.generic }));
+      abortRefs.current.delete(roomId);
     }
   }
 
@@ -392,6 +461,7 @@ export default function Home() {
                 streaming={streaming}
                 error={error}
                 onSuggestionSelect={handleSend}
+                onSkipClarify={handleSkipClarify}
                 onRetry={handleRetry}
               />
             </div>

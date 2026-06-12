@@ -98,3 +98,25 @@ export function formatMessagesForSummary(messages: Message[]): string {
     })
     .join("\n\n");
 }
+
+/** Compose a single decode input from the pre-decode clarify transcript. */
+export function formatClarifyTranscriptForDecode(
+  messages: Message[],
+  latestInput?: string
+): string {
+  const parts: string[] = [];
+
+  for (const message of messages) {
+    if (message.role === "user") {
+      parts.push(`User: ${message.content}`);
+    } else if (message.kind === "clarify") {
+      parts.push(`Unspoken (clarifying): ${message.content}`);
+    }
+  }
+
+  if (latestInput?.trim()) {
+    parts.push(`User: ${latestInput.trim()}`);
+  }
+
+  return parts.join("\n\n");
+}

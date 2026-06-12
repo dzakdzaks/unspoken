@@ -118,6 +118,8 @@ export const translations = {
       you: "You",
       menu: "Chats",
       loadError: "Couldn't load this chat. Try again.",
+      skipClarify: "Skip & decode now",
+      clarifyHint: "A few quick questions first to get a sharper read.",
     },
     suggestions: {
       heading: "Suggested replies",
@@ -263,6 +265,8 @@ export const translations = {
       you: "Kamu",
       menu: "Obrolan",
       loadError: "Gagal memuat obrolan ini. Coba lagi.",
+      skipClarify: "Lewati & decode sekarang",
+      clarifyHint: "Beberapa pertanyaan singkat dulu biar tafsirannya lebih tajam.",
     },
     suggestions: {
       heading: "Saran balasan",

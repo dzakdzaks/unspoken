@@ -6,6 +6,7 @@ import {
   type LLMRequestOptions,
   type TokenUsage,
 } from "./types";
+import { ClarifyDecisionSchema, type ClarifyDecision } from "@/lib/schema";
 import { createOpenAIProvider } from "./openai";
 import { createAnthropicProvider } from "./anthropic";
 import { createGeminiProvider } from "./gemini";
@@ -255,6 +256,17 @@ async function completeText(
   return accumulated.trim();
 }
 
+/** Extract a JSON object from a model response, tolerating code fences / stray prose. */
+function parseJsonObject(raw: string): unknown {
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) return null;
+  try {
+    return JSON.parse(match[0]);
+  } catch {
+    return null;
+  }
+}
+
 /** Extract a JSON string array from a model response, tolerating code fences / stray prose. */
 function parseSuggestions(raw: string): string[] {
   const match = raw.match(/\[[\s\S]*\]/);
@@ -269,6 +281,76 @@ function parseSuggestions(raw: string): string[] {
       .slice(0, 3);
   } catch {
     return [];
+  }
+}
+
+export const MAX_CLARIFY_QUESTIONS = 3;
+
+/**
+ * Decide whether to ask a clarifying question or proceed to decode.
+ * Uses the main model; throws on unrecoverable LLM errors.
+ */
+export async function decideClarify(
+  transcript: string,
+  questionsAsked: number,
+  maxQuestions: number,
+  systemPrompt: string,
+  config?: LLMConfig,
+  options?: LLMRequestOptions,
+): Promise<ClarifyDecision> {
+  const { model, provider } = resolveLLM(config);
+
+  const userContent = [
+    `Questions asked so far: ${questionsAsked}`,
+    `Maximum questions allowed: ${maxQuestions}`,
+    "",
+    "Conversation transcript:",
+    transcript.trim(),
+  ].join("\n");
+
+  const gen = startObservation(
+    "clarify-decision",
+    {
+      model,
+      modelParameters: { temperature: 0.3 },
+      input: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userContent },
+      ],
+    },
+    { asType: "generation" },
+  );
+
+  let accumulated = "";
+  try {
+    const it = provider.chatStream(
+      [{ role: "user", content: userContent }],
+      systemPrompt,
+      options,
+    );
+    let r = await it.next();
+    while (!r.done) {
+      accumulated += r.value;
+      r = await it.next();
+    }
+    const usage = r.value;
+    gen
+      .update({
+        output: accumulated,
+        ...(usage && { usageDetails: toLangfuseUsageDetails(usage) }),
+      })
+      .end();
+
+    const rawParsed = parseJsonObject(accumulated);
+    const validation = ClarifyDecisionSchema.safeParse(rawParsed);
+    if (!validation.success) {
+      // Fallback: if we can't parse, proceed to decode rather than blocking the user.
+      return { ready: true };
+    }
+    return validation.data;
+  } catch (err) {
+    gen.update({ output: accumulated, level: "ERROR" }).end();
+    throw err;
   }
 }
 

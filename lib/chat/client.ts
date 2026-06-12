@@ -94,16 +94,19 @@ export async function deleteMessage(
   if (!res.ok) throw new Error("Failed to delete message.");
 }
 
+export type StreamMode = "decode" | "text" | "clarify";
+
 export interface SendBody {
   input: string;
   lang: Locale;
+  skipClarify?: boolean;
   provider?: string;
   model?: string;
   apiKey?: string;
 }
 
 export interface StreamHandlers {
-  onMeta?: (mode: "decode" | "text", userMessage: Message) => void;
+  onMeta?: (mode: StreamMode, userMessage?: Message) => void;
   onChunk?: (delta: string) => void;
   onDelta?: (delta: string) => void;
   onDone?: (message: Message) => void;
@@ -111,7 +114,12 @@ export interface StreamHandlers {
 }
 
 type SseEvent =
-  | { t: "meta"; mode: "decode" | "text"; roomId: string; userMessage: Message }
+  | {
+      t: "meta";
+      mode: StreamMode;
+      roomId: string;
+      userMessage?: Message;
+    }
   | { t: "chunk"; v: string }
   | { t: "delta"; v: string }
   | { t: "done"; message: Message }
