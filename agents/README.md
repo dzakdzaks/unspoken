@@ -39,6 +39,9 @@ Each role is a Cursor SDK agent with a playbook in `agents/skills/`. Artifacts a
 # Seed pipeline labels + a test issue
 bun run agents:seed
 
+# Have the PM propose new backlog issues (PRD scan, propose-only by default)
+bun run agents:groom
+
 # Run one pipeline tick (processes all open agent:pipeline issues)
 bun run agents:tick
 
@@ -48,6 +51,31 @@ bun run agents:watch
 # Dry-run (no SDK calls, no GitHub writes)
 bun run agents:tick -- --dry-run --issue 1
 ```
+
+## PM auto-creating issues (`agents:groom`)
+
+The Product Manager can generate new backlog issues instead of you writing them
+by hand. It reads `PRD.md` (Risks / Open Questions / Future Considerations),
+checks existing open issues to avoid duplicates, and proposes up to 3 new ones.
+
+```bash
+# Propose issues from the PRD (prints proposals, creates nothing)
+bun run agents:groom
+
+# Focus on a theme
+bun run agents:groom -- --goal "improve first-time user onboarding"
+
+# Actually create the proposed issues (stage:backlog, agent:pipeline)
+bun run agents:groom -- --confirm
+
+# Preview the prompt only (no SDK call)
+bun run agents:groom -- --dry-run
+```
+
+Safety: proposals are **review-first** — nothing is created without `--confirm`.
+Capped at 3 issues per run and deduped against existing open issue titles.
+Created issues land at `stage:backlog`, so the normal `agents:tick` grooming
+flow picks them up next.
 
 ## Pipeline stages (GitHub labels)
 

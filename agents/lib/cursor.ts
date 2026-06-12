@@ -65,22 +65,13 @@ async function sleep(ms: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function runRole(options: RunRoleOptions): Promise<RunRoleResult> {
-  const { roleId, prompt, cwd, dryRun = false, model = MODELS.default } =
-    options;
-
-  const fullPrompt = buildRolePrompt(roleId, prompt);
-
-  if (dryRun) {
-    console.log(`[dry-run] ${roleId} @ ${cwd}`);
-    console.log(fullPrompt.slice(0, 500) + "...");
-    return {
-      status: "finished",
-      result: `[dry-run] ${roleId} completed`,
-      runId: "dry-run",
-    };
-  }
-
+export async function runAgentPrompt(options: {
+  fullPrompt: string;
+  cwd: string;
+  label: string;
+  model?: string;
+}): Promise<RunRoleResult> {
+  const { fullPrompt, cwd, label, model = MODELS.default } = options;
   const apiKey = requireCursorApiKey(false);
 
   for (let attempt = 1; attempt <= MAX_STARTUP_ATTEMPTS; attempt++) {
@@ -112,7 +103,7 @@ export async function runRole(options: RunRoleOptions): Promise<RunRoleResult> {
       if (retryable && attempt < MAX_STARTUP_ATTEMPTS) {
         const delayMs = 1_000 * attempt;
         console.warn(
-          `Cursor SDK startup failed for ${roleId} (attempt ${attempt}/${MAX_STARTUP_ATTEMPTS}): ${errorMessage(
+          `Cursor SDK startup failed for ${label} (attempt ${attempt}/${MAX_STARTUP_ATTEMPTS}): ${errorMessage(
             err
           )}. Retrying in ${delayMs}ms...`
         );
@@ -137,4 +128,23 @@ export async function runRole(options: RunRoleOptions): Promise<RunRoleResult> {
     runId: "startup-error",
     startupError: true,
   };
+}
+
+export async function runRole(options: RunRoleOptions): Promise<RunRoleResult> {
+  const { roleId, prompt, cwd, dryRun = false, model = MODELS.default } =
+    options;
+
+  const fullPrompt = buildRolePrompt(roleId, prompt);
+
+  if (dryRun) {
+    console.log(`[dry-run] ${roleId} @ ${cwd}`);
+    console.log(fullPrompt.slice(0, 500) + "...");
+    return {
+      status: "finished",
+      result: `[dry-run] ${roleId} completed`,
+      runId: "dry-run",
+    };
+  }
+
+  return runAgentPrompt({ fullPrompt, cwd, label: roleId, model });
 }
