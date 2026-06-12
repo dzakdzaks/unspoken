@@ -1,0 +1,46 @@
+---
+description: Conventions for agentic workspace agents working on Unspoken
+globs:
+  - "**/*"
+alwaysApply: false
+---
+
+# Agentic Workspace Conventions
+
+These rules apply when any pipeline agent (PM, Designer, Architect, Engineer, QA) works on this repo.
+
+## Stack
+- Next.js 15 App Router, React 19, TypeScript, Tailwind CSS v3
+- Bun as package manager and runtime
+- MongoDB for persistence, Zod for validation
+- Multi-provider LLM layer in `lib/llm/`
+
+## Commands (must pass before marking work complete)
+```bash
+bun run lint
+bun run build
+bun run test
+```
+
+## Code style
+- Surgical changes only — touch files required by the spec
+- Match existing patterns in `app/`, `lib/`, `components/`
+- No speculative abstractions or unused error handling
+- Follow [karpathy-guidelines.mdc](./karpathy-guidelines.mdc)
+
+## Artifacts
+Pipeline artifacts live in `.agent-workspace/<issue#>/`:
+- `requirements.md` — PM
+- `design.md` — Designer
+- `spec.md` — Architect
+- `test-plan.md` — QA
+
+## Git
+- Engineer/automation QA work in worktree branch `agent/issue-<#>`
+- Commit format: `feat(scope): description (#<issue>)` or `test(scope): description (#<issue>)`
+- Never merge PRs — human gate handles merge
+
+## Security
+- Never commit secrets or `.env.local`
+- User API keys are browser-only (never persisted server-side)
+- All room/message access must be scoped by `userId`
