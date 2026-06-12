@@ -102,3 +102,14 @@ describe("TranslationResultSchema", () => {
     expect(result.success).toBe(false);
   });
 });
+
+describe("decode JSON parse guard", () => {
+  it("throws on malformed JSON string", () => {
+    expect(() => JSON.parse("{not json")).toThrow();
+  });
+
+  it("rejects schema-failing object via safeParse", () => {
+    const result = TranslationResultSchema.safeParse({ translation: "incomplete" });
+    expect(result.success).toBe(false);
+  });
+});
