@@ -199,6 +199,8 @@ export async function POST(
       const send = (payload: unknown) =>
         controller.enqueue(encoder.encode(sse(payload)));
 
+      const providerTag = parsed.data.provider ?? "default";
+
       await propagateAttributes(
         {
           userId,
@@ -206,8 +208,9 @@ export async function POST(
           metadata: {
             skipClarify: String(skipClarify),
             lang: parsedLang,
-            provider: parsed.data.provider ?? "default",
+            provider: providerTag,
           },
+          tags: [`lang:${parsedLang}`, `provider:${providerTag}`],
         },
         async () => {
           await startActiveObservation("send-message", async (span) => {
@@ -246,7 +249,10 @@ export async function POST(
                     content: refusal,
                   });
                   await touchRoom(roomId);
-                  span.update({ output: refusal });
+                  span.update({
+                    output: refusal,
+                    metadata: { mode: "text", guardrailBlocked: true },
+                  });
                   send({ t: "done", message: assistantMessage });
                   return;
                 }
@@ -290,7 +296,10 @@ export async function POST(
                     suggestions: decision.quick_replies,
                   });
                   await touchRoom(roomId);
-                  span.update({ output: decision.question });
+                  span.update({
+                    output: decision.question,
+                    metadata: { mode: "clarify", guardrailBlocked: false },
+                  });
                   send({ t: "done", message: assistantMessage });
                   return;
                 }
@@ -341,7 +350,10 @@ export async function POST(
                   suggestions: validation.data.follow_ups,
                 });
                 await touchRoom(roomId);
-                span.update({ output: validation.data.translation });
+                span.update({
+                  output: validation.data.translation,
+                  metadata: { mode: "decode", guardrailBlocked: false },
+                });
                 send({ t: "done", message: assistantMessage });
               } else {
                 const unsummarizedOlder = getUnsummarizedOlderMessages(
@@ -411,7 +423,10 @@ export async function POST(
                   suggestions,
                 });
                 await touchRoom(roomId);
-                span.update({ output: reply });
+                span.update({
+                  output: reply,
+                  metadata: { mode: "text", guardrailBlocked: false },
+                });
                 send({ t: "done", message: assistantMessage });
               }
             } catch (err) {

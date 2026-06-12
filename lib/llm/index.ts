@@ -242,24 +242,6 @@ export async function* chatStream(
   }
 }
 
-async function completeText(
-  messages: ChatMessage[],
-  systemPrompt: string,
-  config?: LLMConfig,
-  options?: LLMRequestOptions,
-): Promise<string> {
-  let accumulated = "";
-  for await (const chunk of chatStream(
-    messages,
-    systemPrompt,
-    config,
-    options,
-  )) {
-    accumulated += chunk;
-  }
-  return accumulated.trim();
-}
-
 /** Extract a JSON object from a model response, tolerating code fences / stray prose. */
 function parseJsonObject(raw: string): unknown {
   const match = raw.match(/\{[\s\S]*\}/);
@@ -515,27 +497,60 @@ export async function updateConversationSummary(
     return existingSummary?.trim() ?? "";
   }
 
+  let gen: ReturnType<typeof startObservation> | undefined;
+  let accumulated = "";
+
   try {
-    const cheapConfig = {
-      ...config,
-      model: undefined,
-      provider: config?.provider,
-      apiKey: config?.apiKey,
-    };
+    // Preserve prior model resolution (main model, request overrides honored).
+    const { model, provider } = resolveLLM({ ...config, model: undefined });
 
     const userContent = existingSummary?.trim()
       ? `Existing summary:\n${existingSummary.trim()}\n\nNew conversation turns:\n${newMessagesText.trim()}`
       : `New conversation turns:\n${newMessagesText.trim()}`;
 
-    const summary = await completeText(
-      [{ role: "user", content: userContent }],
-      systemPrompt,
-      cheapConfig,
-      { ...options, reasoningEffort: "low" },
+    gen = startObservation(
+      "summarize",
+      {
+        model,
+        modelParameters: { temperature: 0.3, reasoningEffort: "low" },
+        input: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userContent },
+        ],
+      },
+      { asType: "generation" },
     );
 
-    return summary || existingSummary?.trim() || "";
-  } catch {
+    const it = provider.chatStream(
+      [{ role: "user", content: userContent }],
+      systemPrompt,
+      { ...options, reasoningEffort: "low" },
+    );
+    let r = await it.next();
+    while (!r.done) {
+      accumulated += r.value;
+      r = await it.next();
+    }
+    const usage = r.value;
+    gen
+      .update({
+        output: accumulated,
+        ...(usage && { usageDetails: toLangfuseUsageDetails(usage) }),
+      })
+      .end();
+
+    return accumulated.trim() || existingSummary?.trim() || "";
+  } catch (err) {
+    // Best-effort feature: never throw. Surface the cause and end the observation
+    // so it isn't left dangling.
+    console.error("[updateConversationSummary] failed:", err);
+    gen
+      ?.update({
+        output: accumulated,
+        level: "ERROR",
+        statusMessage: err instanceof Error ? err.message : String(err),
+      })
+      .end();
     return existingSummary?.trim() ?? "";
   }
 }
