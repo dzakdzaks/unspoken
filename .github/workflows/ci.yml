@@ -19,8 +19,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm install
-      - run: npm install
+      - run: rm package-lock.json && npm install
       - run: npm run lint
 
   test:
@@ -31,8 +30,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm install
-      - run: npm install
+      - run: rm package-lock.json && npm install
       - run: npm test
 
   build:
@@ -43,6 +41,5 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm install
-      - run: npm install
+      - run: rm package-lock.json && npm install
       - run: npm run build
