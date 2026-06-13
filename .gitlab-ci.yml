@@ -1,0 +1,52 @@
+image: node:22-alpine
+
+variables:
+  NODE_ENV: test
+  NEXT_TELEMETRY_DISABLED: "1"
+
+cache:
+  key:
+    files:
+      - package-lock.json
+  paths:
+    - node_modules/
+
+stages:
+  - install
+  - lint
+  - test
+  - build
+
+install:
+  stage: install
+  script:
+    - npm ci
+  artifacts:
+    paths:
+      - node_modules/
+    expire_in: 1h
+
+lint:
+  stage: lint
+  script:
+    - npm run lint
+  dependencies:
+    - install
+
+test:
+  stage: test
+  script:
+    - npm test
+  dependencies:
+    - install
+
+build:
+  stage: build
+  script:
+    - npm run build
+  dependencies:
+    - install
+  artifacts:
+    paths:
+      - .next/
+    expire_in: 1 week
